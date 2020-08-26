@@ -1,0 +1,12 @@
+obj/types_module.o : src/types_module.f90 
+obj/zhang.o : src/zhang.f90 obj/types_module.o 
+obj/input.o : src/input.f90 obj/types_module.o 
+obj/functions.o : src/functions.f90 obj/types_module.o 
+obj/daughters.o : src/daughters.f90 obj/types_module.o 
+obj/findZZ.o : src/findZZ.f90 obj/types_module.o 
+obj/polynomial.o : src/polynomial.f90 obj/types_module.o 
+obj/decompose.o : src/decompose.f90 obj/types_module.o 
+obj/operators.o : src/operators.f90 obj/types_module.o 
+obj/print.o : src/print.f90 obj/types_module.o 
+obj/hexagon.o : src/hexagon.f90 obj/types_module.o 
+obj/schlegel.o : src/schlegel.f90 obj/types_module.o 
