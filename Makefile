@@ -4,6 +4,7 @@ MODDIR := obj/
 BINDIR := bin/
 
 FC := ifort
+#FFLAGS := -profile-functions -profile-loops=all -profile-loops-report=2  -ipo -O3 -funroll-loops -no-prec-div -module ${MODDIR} 
 FFLAGS := -ipo -O3 -funroll-loops -no-prec-div -module ${MODDIR} 
 #-check all -debug all
 #FFLAGS := -g3 -O0 -module ${MODDIR} -debug -trace
@@ -33,7 +34,7 @@ SRCS := ${COMMON_SRCS} ${ZHANG_SRCS}
 all: zhang
 
 .PHONY: zhang
-zhang: ${BINDIR}zhang
+zhang: ${BINDIR}zhangadjtmp
 
 .PHONY: clean
 clean:
@@ -47,7 +48,7 @@ mrproper: clean
 	rm -f ${SRCDIR}*~
 	rm -f *~
 
-${BINDIR}zhang: ${ZHANG_OBJS} ${COMMON_OBJS}
+${BINDIR}zhangadjtmp: ${ZHANG_OBJS} ${COMMON_OBJS}
 	@echo [LD] $@
 	@${FC} ${LDFLAGS} -o $@ $^
 
