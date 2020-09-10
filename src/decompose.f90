@@ -9,7 +9,7 @@ recursive subroutine decompose(pah,level)
 ! 
   use types_module
   implicit none
-  integer(kint) :: atom1,atom2,atom3,i,level,nelim
+  integer(kint) :: atom1,atom2,atom3,i,level,nelim,j
   integer(kint),dimension(6) :: sextet1,sextet2
   integer(kint),dimension(2) :: atoms
   type(structure),intent(inout) :: pah
@@ -36,6 +36,8 @@ recursive subroutine decompose(pah,level)
     atom3=pah%neighborlist(1,3)
     call find_aromatic_sextet(pah,sextet2,atom1,atom2,atom3,ring2_exists)
   end if
+!  if (ring1_exists) write(*,*)'Ring 1'
+!  if (ring2_exists) write(*,*)'Ring 2'
 
 ! ##################################
 ! # create the daughter structures #
@@ -81,7 +83,15 @@ recursive subroutine decompose(pah,level)
 ! ###############################################
 ! # find ZZ polynomial for the parent structure #
 ! ###############################################
-  call sum_polynomials(pah,bond,corners,ring1,ring1_exists,ring2,ring2_exists)
+   call sum_polynomials(pah,bond,corners,ring1,ring1_exists,ring2,ring2_exists)
+!   write(*,*)'Level',level,pah%nat,pah%order
+
+!   write(*,'(A)',advance='no')"N "   
+!   do i=1,pah%nat
+!     write(*,'(3I3)', advance='no')(pah%neighborlist(i,j),j=1,3)
+!   end do
+!   write(*,*)
+!  call print_ZZ_polynomial(pah)  
 
 ! ##################################
 ! # deallocate daughter structures #

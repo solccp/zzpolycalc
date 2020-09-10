@@ -24,6 +24,13 @@ module types_module
   end type structure
 
 contains
+  subroutine cpvli(a,b)
+  type(vlonginteger),intent(in) :: a
+  type(vlonginteger),intent(out) :: b
+  b=a
+  end subroutine cpvli
+  
+
 
   function setvli(a) result(c)   
   implicit none
@@ -160,3 +167,86 @@ end module types_module
 
 !####################################################################################
 !############################ end of module types_module ############################
+
+module lookup_module
+use types_module
+  integer, parameter :: maxtab = 10000
+  integer :: nstruct = 0
+  type,public :: neigh
+     integer(kint) :: nat
+     integer(kint), pointer :: nlist(:,:)     
+     integer(kint) :: order
+     type(vlonginteger),pointer :: polynomial(:)
+  end type neigh
+  type(neigh) :: x(maxtab)
+contains 
+subroutine add_neigh(nat,a,order,poly)
+  implicit none
+  integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(in) :: order
+  type(vlonginteger), intent(in) :: poly(order)
+  type(vlonginteger) :: polytmp
+
+  integer :: i,j
+  nstruct=nstruct+1
+  if (nstruct>maxtab) then 
+  print*,"overflow in add_neigh, enlarge size of maxtab"
+    stop
+  end if
+  x(nstruct)%nat=nat
+  allocate(x(nstruct)%nlist(nat,3))
+  do i=1,nat
+    do j=1,3
+      x(nstruct)%nlist(i,j)=a(i,j)
+    end do
+  end do
+  allocate(x(nstruct)%polynomial(order+1))
+  x(nstruct)%order=order
+  do i=1,order+1
+    call cpvli(poly(i),x(nstruct)%polynomial(i))
+  end do
+!  write(*,*)nstruct
+!   write(*,'(A)',advance='no')"X "   
+!   do i=1,nat
+!     write(*,'(3I3)', advance='no')(a(i,j),j=1,3)
+!   end do
+!   write(*,*)
+
+end subroutine add_neigh
+
+function check_seen(nat,a,order,poly) result(seen)
+  implicit none
+  integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(out) :: order
+  type(vlonginteger), allocatable,intent(out) :: poly(:)  
+  logical :: seen
+  integer :: i,j,k,match
+  seen = .false.
+  structloop: do i=1,nstruct
+    if (x(i)%nat .ne. nat) cycle structloop
+    do j=1,nat
+      do k=1,3
+        if (x(i)%nlist(j,k).ne. a(j,k)) cycle structloop
+      end do
+      if (j.eq.nat) then 
+        seen=.true.
+        match=i
+        exit structloop
+      end if
+    end do
+ end do structloop
+ if (seen) then
+    order=x(match)%order
+    allocate(poly(order+1))
+     do i=1,order+1
+      call cpvli(x(match)%polynomial(i),poly(i))
+    end do
+ end if
+end function check_seen
+
+
+end module lookup_module
+
+

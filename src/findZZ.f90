@@ -5,9 +5,15 @@ recursive subroutine find_ZZ_polynomial(pah,level)
 ! find resursively the ZZ polynomial for the structure pah
 !
   use types_module
+  use lookup_module
   implicit none
   integer(kint) :: medat,level
   type(structure) :: pah
+  integer i,j
+  logical :: seen
+
+!   write(*,*)'Level',level,pah%nat,pah%order
+
 
 ! ###########################
 ! # if pah contains 0 atoms #
@@ -31,13 +37,29 @@ recursive subroutine find_ZZ_polynomial(pah,level)
 ! # check if the graph of pah is connected #
 ! ##########################################
   else
+!    write(*,'(A)',advance='no')"S "   
+!   do i=1,pah%nat
+!     write(*,'(3I3)', advance='no')(pah%neighborlist(i,j),j=1,3)
+!   end do
+!   write(*,*)
+
     call check_if_connected(pah,medat)
 
 !   #############################################
 !   # if pah is connected, decompose it further #
 !   #############################################
     if (medat == 0) then
+
+    seen=check_seen(pah%nat,pah%neighborlist,pah%order,pah%polynomial)
+!    write(*,*)seen
+ 
+
+    if (.not. seen) then
       call decompose(pah,level)
+
+      call add_neigh(pah%nat,pah%neighborlist,pah%order,pah%polynomial)
+    end if
+
 
 !   ########################################################################
 !   # if pah is disconnected, split it and decompose the fragments further #
@@ -45,6 +67,7 @@ recursive subroutine find_ZZ_polynomial(pah,level)
     else
       call split_and_decompose(pah,medat,level)
     end if
+
   end if
   return
 
