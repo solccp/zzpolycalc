@@ -74,8 +74,12 @@ subroutine read_input(pah)
     do i=1,cnat-1
       read(20,*)atname,(pah%neighborlist(i,k),k=1,3)
       pah%neighbornumber(i)=3
+      do k=1,3
+        if (pah%neighborlist(i,k).eq.0) pah%neighbornumber(i)=pah%neighbornumber(i)-1
+      end do
     end do
     pah%neighbornumber(cnat)=3
+
     j=1
 ! find connectivity of the last atom
     do i=1,cnat-1
@@ -86,6 +90,10 @@ subroutine read_input(pah)
         end if
       end do
     end do
+    do k=1,3
+        if (pah%neighborlist(cnat,k).eq.0) pah%neighbornumber(cnat)=pah%neighbornumber(cnat)-1
+    end do
+
   else
 ! #######################
 ! # find neighbor table #
