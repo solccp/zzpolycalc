@@ -11,6 +11,7 @@ program zhang_polynomial
 !   Polycyclic Aromatic Compounds 26 pp.17-35, 2006
 !
   use types_module
+  use lookup_module
   implicit none
   integer(kint) :: i,nhex,level=0
   integer(kint),allocatable,dimension(:,:) :: lista
@@ -30,6 +31,7 @@ program zhang_polynomial
 ! # print the ZZ polynomial #
 ! ###########################
   call print_ZZ_polynomial(pah)
+  write(*,*)'Unique',nstruct
 
 end
 !####################################################################################
