@@ -170,7 +170,7 @@ end module types_module
 
 module lookup_module
 use types_module
-  integer, parameter :: maxtab = 10000
+  integer, parameter :: maxtab = 1000000
   integer :: nstruct = 0
   type,public :: neigh
      integer(kint) :: nat
