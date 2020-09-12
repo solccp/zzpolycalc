@@ -170,11 +170,14 @@ end module types_module
 
 module lookup_module
 use types_module
+use ISO_FORTRAN_ENV
   integer, parameter :: maxtab = 1000000
+  integer, parameter :: packlen = 1048576
+
   integer :: nstruct = 0
   type,public :: neigh
      integer(kint) :: nat
-     integer(kint), pointer :: nlist(:,:)     
+     integer(int64), pointer :: nlist(:)     
      integer(kint) :: order
      type(vlonginteger),pointer :: polynomial(:)
   end type neigh
@@ -194,12 +197,16 @@ subroutine add_neigh(nat,a,order,poly)
   print*,"overflow in add_neigh, enlarge size of maxtab"
     stop
   end if
+  if (nat>packlen) then 
+  print*,"overflow in packlen"
+    stop
+  end if
+
+
   x(nstruct)%nat=nat
-  allocate(x(nstruct)%nlist(nat,3))
+  allocate(x(nstruct)%nlist(nat))
   do i=1,nat
-    do j=1,3
-      x(nstruct)%nlist(i,j)=a(i,j)
-    end do
+      x(nstruct)%nlist(i)=a(i,1)+a(i,2)*packlen+a(i,3)*packlen**2
   end do
   allocate(x(nstruct)%polynomial(order+1))
   x(nstruct)%order=order
@@ -227,9 +234,7 @@ function check_seen(nat,a,order,poly) result(seen)
   structloop: do i=1,nstruct
     if (x(i)%nat .ne. nat) cycle structloop
     do j=1,nat
-      do k=1,3
-        if (x(i)%nlist(j,k).ne. a(j,k)) cycle structloop
-      end do
+        if (x(i)%nlist(j).ne. a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2) cycle structloop
       if (j.eq.nat) then 
         seen=.true.
         match=i
