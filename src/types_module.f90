@@ -168,7 +168,7 @@ end module types_module
 !####################################################################################
 !############################ end of module types_module ############################
 
-module lookup_module
+module lookup_module_list
 use types_module
 use ISO_FORTRAN_ENV
   integer, parameter :: maxat = 1000
@@ -194,7 +194,7 @@ subroutine add_neigh(nat,a,order,poly)
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: a(nat,3)
   integer(kint), intent(in) :: order
-  type(vlonginteger), intent(in) :: poly(order+1)
+  type(vlonginteger), intent(in) :: poly(order)
   type(vlonginteger) :: polytmp
   type(ptrneigh),pointer :: curr
   type(ptrneigh), target :: xtmp
@@ -289,6 +289,159 @@ function check_seen(nat,a,order,poly) result(seen)
       end if
     end do
     curr=>curr%next
+ end do structloop
+ if (seen) then
+    order=match%order
+    allocate(poly(order+1))
+     do i=1,order+1
+      call cpvli(match%polynomial(i),poly(i))
+    end do
+ end if
+end function check_seen
+
+
+end module lookup_module_list
+
+
+
+module lookup_module
+use types_module
+use ISO_FORTRAN_ENV
+  integer, parameter :: maxat = 1000
+  integer, parameter :: packlen = 1048576
+
+  integer :: nstruct = 0
+  type,public :: neigh
+     integer(int64), pointer :: nlist(:)     
+     integer(kint) :: order
+     type(vlonginteger),pointer :: polynomial(:)
+  end type neigh
+
+  type ptrneigh
+  type(neigh), pointer :: p(:)
+  end type ptrneigh
+
+  type(ptrneigh) :: x(maxat)
+  integer(kint) :: xlen(maxat)
+contains 
+subroutine add_neigh(nat,a,order,poly)
+  implicit none
+  integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(in) :: order
+  type(vlonginteger), intent(in) :: poly(order+1)
+  type(vlonginteger) :: polytmp
+  type(ptrneigh),pointer :: curr
+  type(ptrneigh), target :: xtmp
+  logical :: first
+  type(neigh), pointer :: ptmp(:)
+  integer(int64) :: ipack
+
+  integer :: i,j,ilen
+  nstruct=nstruct+1
+  if (nat>packlen) then 
+  print*,"overflow in packlen"
+    stop
+  end if
+
+  if (nat>maxat) then 
+  print*,"overflow in maxat"
+    stop
+  end if
+
+  xtmp=x(nat)
+  curr=>xtmp
+  if (associated(curr%p)) then 
+     first=.false.
+  else
+     first=.true.
+     xlen(nat)=0
+  end if
+  
+  ilen=xlen(nat)
+!  write(*,*)nat,ilen
+  allocate(ptmp(ilen+1))
+
+   
+  do i=1,ilen
+!      allocate(ptmp(i)%nlist(nat))
+!      write(*,*)'alloc',i,%loc(ptmp(i)%nlist)
+!      allocate(ptmp(i)%polynomial(curr%p(i)%order+1))
+!I have no idea why but this assign pointers and not values
+      ptmp(i)=x(nat)%p(i)
+  end do
+
+  allocate(ptmp(ilen+1)%nlist(nat))
+!  write(*,*)'alloc ilen+1',ilen+1,%loc(ptmp(ilen+1)%nlist)
+
+
+  do i=1,nat
+      ptmp(ilen+1)%nlist(i)=a(i,1)+a(i,2)*packlen+a(i,3)*packlen**2
+  end do
+  allocate(ptmp(ilen+1)%polynomial(order+1))
+  ptmp(ilen+1)%order=order
+  do i=1,order+1
+    call cpvli(poly(i),ptmp(ilen+1)%polynomial(i))
+  end do
+
+!  do i=1,ilen
+!    write(*,*)'Dealloc nlist',i,%loc(x(nat)%p(i)%nlist),%loc(x(nat)%p(i)),%loc(ptmp(i)%nlist),%loc(ptmp(i))
+!    deallocate(x(nat)%p(i)%nlist)
+!    write(*,*)'Dealloc polynomial',i
+!    deallocate(x(nat)%p(i)%polynomial)
+!  end do
+
+  if (.not.first)  then 
+!     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
+   deallocate(x(nat)%p)
+  end if
+  
+!  write(*,*)'ptmp',%loc(ptmp)
+  x(nat)%p=>ptmp
+  xlen(nat)=xlen(nat)+1
+
+
+
+!  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
+!  write(*,*)nstruct
+!   write(*,'(A)',advance='no')"X "   
+!   do i=1,nat
+!     write(*,'(3I3)', advance='no')(a(i,j),j=1,3)
+!   end do
+!   write(*,*)
+
+end subroutine add_neigh
+
+function check_seen(nat,a,order,poly) result(seen)
+  implicit none
+  integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(out) :: order
+  type(vlonginteger), allocatable,intent(out) :: poly(:)  
+  logical :: seen
+  integer :: i,j,k
+  type(ptrneigh),pointer :: curr
+  type(neigh), pointer :: match
+  type(ptrneigh), target :: xtmp
+
+
+  seen = .false.
+!  write(*,*)nat,xlen(nat)
+  xtmp=x(nat)
+  curr=>xtmp
+  structloop:   do i=1,xlen(nat)
+    do j=1,nat
+!        write(*,*)i,j,curr%p(i)%nlist(j),a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2,a(j,1),a(j,2),a(j,3)
+        if (curr%p(i)%nlist(j).ne. a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2) then 
+          cycle structloop
+        end if
+      if (j.eq.nat) then 
+        seen=.true.
+!        write(*,*)'match'
+        match=>curr%p(i)
+        exit structloop
+      end if
+    end do
  end do structloop
  if (seen) then
     order=match%order
