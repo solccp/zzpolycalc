@@ -368,7 +368,9 @@ subroutine add_neigh(nat,a,order,poly)
 !      write(*,*)'alloc',i,%loc(ptmp(i)%nlist)
 !      allocate(ptmp(i)%polynomial(curr%p(i)%order+1))
 !I have no idea why but this assign pointers and not values
-      ptmp(i)=x(nat)%p(i)
+      ptmp(i)%order=x(nat)%p(i)%order
+      ptmp(i)%nlist=>x(nat)%p(i)%nlist
+      ptmp(i)%polynomial=>x(nat)%p(i)%polynomial
   end do
 
   allocate(ptmp(ilen+1)%nlist(nat))
