@@ -171,7 +171,7 @@ end module types_module
 module lookup_module
 use types_module
 use ISO_FORTRAN_ENV
-  integer, parameter :: maxtab = 1000000
+  integer, parameter :: maxat = 1000
   integer, parameter :: packlen = 1048576
 
   integer :: nstruct = 0
@@ -181,7 +181,13 @@ use ISO_FORTRAN_ENV
      integer(kint) :: order
      type(vlonginteger),pointer :: polynomial(:)
   end type neigh
-  type(neigh) :: x(maxtab)
+
+  type ptrneigh
+  type(neigh), pointer :: p
+  type(ptrneigh), pointer :: next => null()
+  end type ptrneigh
+
+  type(ptrneigh) :: x(maxat)
 contains 
 subroutine add_neigh(nat,a,order,poly)
   implicit none
@@ -190,29 +196,57 @@ subroutine add_neigh(nat,a,order,poly)
   integer(kint), intent(in) :: order
   type(vlonginteger), intent(in) :: poly(order)
   type(vlonginteger) :: polytmp
+  type(ptrneigh),pointer :: curr
+  type(ptrneigh), target :: xtmp
+  logical :: first
 
   integer :: i,j
   nstruct=nstruct+1
-  if (nstruct>maxtab) then 
-  print*,"overflow in add_neigh, enlarge size of maxtab"
-    stop
-  end if
   if (nat>packlen) then 
   print*,"overflow in packlen"
     stop
   end if
 
+  if (nat>maxat) then 
+  print*,"overflow in maxat"
+    stop
+  end if
 
-  x(nstruct)%nat=nat
-  allocate(x(nstruct)%nlist(nat))
+! find last
+  xtmp=x(nat)
+  curr=>xtmp
+  if (associated(curr%p)) then 
+     first=.false.
+  else
+     first=.true.
+  end if
+  j=0
+  do while(associated(curr%next))
+    curr=>curr%next
+    j=j+1
+  end do
+!  write(*,*)first,j
+  if (.not. first) then
+    allocate(curr%next)
+    curr=>curr%next
+  end if
+  allocate(curr%p)
+  allocate(curr%p%nlist(nat))
   do i=1,nat
-      x(nstruct)%nlist(i)=a(i,1)+a(i,2)*packlen+a(i,3)*packlen**2
+      curr%p%nlist(i)=a(i,1)+a(i,2)*packlen+a(i,3)*packlen**2
   end do
-  allocate(x(nstruct)%polynomial(order+1))
-  x(nstruct)%order=order
+  allocate(curr%p%polynomial(order+1))
+  curr%p%order=order
   do i=1,order+1
-    call cpvli(poly(i),x(nstruct)%polynomial(i))
+    call cpvli(poly(i),curr%p%polynomial(i))
   end do
+  if (first) then
+    x(nat)%p=>curr%p
+  end if
+  if (.not. first .and. j.eq.0) then ! second in chain
+    x(nat)%next=>curr
+  end if
+!  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
 !  write(*,*)nstruct
 !   write(*,'(A)',advance='no')"X "   
 !   do i=1,nat
@@ -229,24 +263,38 @@ function check_seen(nat,a,order,poly) result(seen)
   integer(kint), intent(out) :: order
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
   logical :: seen
-  integer :: i,j,k,match
+  integer :: i,j,k
+  type(ptrneigh),pointer :: curr
+  type(neigh), pointer :: match
+  type(ptrneigh), target :: xtmp
+
+
   seen = .false.
-  structloop: do i=1,nstruct
-    if (x(i)%nat .ne. nat) cycle structloop
+!  write(*,*)nat
+  xtmp=x(nat)
+  curr=>xtmp
+  structloop:   do while(associated(curr))
+   if (.not. associated(curr%p) ) exit structloop
     do j=1,nat
-        if (x(i)%nlist(j).ne. a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2) cycle structloop
+!        write(*,*)j,curr%p%nlist(j),a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2,a(j,1),a(j,2),a(j,3)
+        if (curr%p%nlist(j).ne. a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2) then 
+          curr=>curr%next
+          cycle structloop
+        end if
       if (j.eq.nat) then 
         seen=.true.
-        match=i
+!        write(*,*)'match'
+        match=>curr%p
         exit structloop
       end if
     end do
+    curr=>curr%next
  end do structloop
  if (seen) then
-    order=x(match)%order
+    order=match%order
     allocate(poly(order+1))
      do i=1,order+1
-      call cpvli(x(match)%polynomial(i),poly(i))
+      call cpvli(match%polynomial(i),poly(i))
     end do
  end if
 end function check_seen
