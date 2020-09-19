@@ -194,7 +194,7 @@ subroutine add_neigh(nat,a,order,poly)
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: a(nat,3)
   integer(kint), intent(in) :: order
-  type(vlonginteger), intent(in) :: poly(order)
+  type(vlonginteger), intent(in) :: poly(order+1)
   type(vlonginteger) :: polytmp
   type(ptrneigh),pointer :: curr
   type(ptrneigh), target :: xtmp
