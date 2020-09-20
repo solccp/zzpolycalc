@@ -307,7 +307,7 @@ end module lookup_module_list
 module lookup_module
 use types_module
 use ISO_FORTRAN_ENV
-  integer, parameter :: maxat = 1000
+  integer, parameter :: maxat = 400
   integer, parameter :: packlen = 1048576
 
   integer :: nstruct = 0
@@ -321,8 +321,8 @@ use ISO_FORTRAN_ENV
   type(neigh), pointer :: p(:)
   end type ptrneigh
 
-  type(ptrneigh) :: x(maxat)
-  integer(kint) :: xlen(maxat)
+  type(ptrneigh) :: x(maxat,2*maxat)
+  integer(kint) :: xlen(maxat,2*maxat)
 contains 
 subroutine add_neigh(nat,a,order,poly)
   implicit none
@@ -337,7 +337,7 @@ subroutine add_neigh(nat,a,order,poly)
   type(neigh), pointer :: ptmp(:)
   integer(int64) :: ipack
 
-  integer :: i,j,ilen
+  integer :: i,j,ilen,idx2
   nstruct=nstruct+1
   if (nat>packlen) then 
   print*,"overflow in packlen"
@@ -349,16 +349,17 @@ subroutine add_neigh(nat,a,order,poly)
     stop
   end if
 
-  xtmp=x(nat)
+  idx2=iabs(a(nat,1)-a(nat/2,1))+1+iabs(a(nat/2,3)-a(1,3))
+  xtmp=x(nat,idx2)
   curr=>xtmp
   if (associated(curr%p)) then 
      first=.false.
   else
      first=.true.
-     xlen(nat)=0
+     xlen(nat,idx2)=0
   end if
   
-  ilen=xlen(nat)
+  ilen=xlen(nat,idx2)
 !  write(*,*)nat,ilen
   allocate(ptmp(ilen+1))
 
@@ -368,9 +369,9 @@ subroutine add_neigh(nat,a,order,poly)
 !      write(*,*)'alloc',i,%loc(ptmp(i)%nlist)
 !      allocate(ptmp(i)%polynomial(curr%p(i)%order+1))
 !I have no idea why but this assign pointers and not values
-      ptmp(i)%order=x(nat)%p(i)%order
-      ptmp(i)%nlist=>x(nat)%p(i)%nlist
-      ptmp(i)%polynomial=>x(nat)%p(i)%polynomial
+      ptmp(i)%order=x(nat,idx2)%p(i)%order
+      ptmp(i)%nlist=>x(nat,idx2)%p(i)%nlist
+      ptmp(i)%polynomial=>x(nat,idx2)%p(i)%polynomial
   end do
 
   allocate(ptmp(ilen+1)%nlist(nat))
@@ -395,18 +396,19 @@ subroutine add_neigh(nat,a,order,poly)
 
   if (.not.first)  then 
 !     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
-   deallocate(x(nat)%p)
+   deallocate(x(nat,idx2)%p)
   end if
   
 !  write(*,*)'ptmp',%loc(ptmp)
-  x(nat)%p=>ptmp
-  xlen(nat)=xlen(nat)+1
+  x(nat,idx2)%p=>ptmp
+  xlen(nat,idx2)=xlen(nat,idx2)+1
 
 
 
 !  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
 !  write(*,*)nstruct
 !   write(*,'(A)',advance='no')"X "   
+!   write(*,'(2I3)'),nat,iabs(a(nat,1)-a(nat/2,1))+iabs(a(nat/2,3)-a(1,3))
 !   do i=1,nat
 !     write(*,'(3I3)', advance='no')(a(i,j),j=1,3)
 !   end do
@@ -421,17 +423,18 @@ function check_seen(nat,a,order,poly) result(seen)
   integer(kint), intent(out) :: order
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
   logical :: seen
-  integer :: i,j,k
+  integer :: i,j,k,idx2
   type(ptrneigh),pointer :: curr
   type(neigh), pointer :: match
   type(ptrneigh), target :: xtmp
 
+  idx2=iabs(a(nat,1)-a(nat/2,1))+1+iabs(a(nat/2,3)-a(1,3))
 
   seen = .false.
 !  write(*,*)nat,xlen(nat)
-  xtmp=x(nat)
+  xtmp=x(nat,idx2)
   curr=>xtmp
-  structloop:   do i=1,xlen(nat)
+  structloop:   do i=1,xlen(nat,idx2)
     do j=1,nat
 !        write(*,*)i,j,curr%p(i)%nlist(j),a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2,a(j,1),a(j,2),a(j,3)
         if (curr%p(i)%nlist(j).ne. a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2) then 
