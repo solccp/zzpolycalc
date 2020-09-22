@@ -67,15 +67,15 @@ subroutine read_input(pah)
   pah%order=0
   allocate(pah%initiallabel(pah%nat))
   allocate(pah%neighbornumber(pah%nat))
-  allocate(pah%neighborlist(pah%nat,3))
+  allocate(pah%neighborlist(3,pah%nat))
   pah%neighbornumber=0
 
   if (adjexists) then
     do i=1,cnat-1
-      read(20,*)atname,(pah%neighborlist(i,k),k=1,3)
+      read(20,*)atname,(pah%neighborlist(k,i),k=1,3)
       pah%neighbornumber(i)=3
       do k=1,3
-        if (pah%neighborlist(i,k).eq.0) pah%neighbornumber(i)=pah%neighbornumber(i)-1
+        if (pah%neighborlist(k,i).eq.0) pah%neighbornumber(i)=pah%neighbornumber(i)-1
       end do
     end do
     pah%neighbornumber(cnat)=3
@@ -84,14 +84,14 @@ subroutine read_input(pah)
 ! find connectivity of the last atom
     do i=1,cnat-1
       do k=1,3
-        if (pah%neighborlist(i,k).eq.cnat) then
-          pah%neighborlist(cnat,j)=i
+        if (pah%neighborlist(k,i).eq.cnat) then
+          pah%neighborlist(j,cnat)=i
           j=j+1
         end if
       end do
     end do
     do k=1,3
-        if (pah%neighborlist(cnat,k).eq.0) pah%neighbornumber(cnat)=pah%neighbornumber(cnat)-1
+        if (pah%neighborlist(k,cnat).eq.0) pah%neighbornumber(cnat)=pah%neighbornumber(cnat)-1
     end do
 
   else
@@ -103,15 +103,15 @@ subroutine read_input(pah)
       do j=i+1,cnat
         if (dist(cnat,i,j,geom) < ccdist) then
           pah%neighbornumber(i)=pah%neighbornumber(i)+1
-          pah%neighborlist(i,pah%neighbornumber(i))=j
+          pah%neighborlist(pah%neighbornumber(i),i)=j
           pah%neighbornumber(j)=pah%neighbornumber(j)+1
-          pah%neighborlist(j,pah%neighbornumber(j))=i
+          pah%neighborlist(pah%neighbornumber(j),j)=i
         end if
       end do
     end do
   end if
 !  do i=1,cnat
-!    write(*,'(4(I5,2x))'),i,(pah%neighborlist(i,k),k=1,3)
+!    write(*,'(4(I5,2x))'),i,(pah%neighborlist(k,i),k=1,3)
 !  end do
 
   if (.not. adjexists) then

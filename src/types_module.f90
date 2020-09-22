@@ -192,7 +192,7 @@ contains
 subroutine add_neigh(nat,a,order,poly)
   implicit none
   integer(kint),intent(in) :: nat
-  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(in) :: a(3,nat)
   integer(kint), intent(in) :: order
   type(vlonginteger), intent(in) :: poly(order)
   type(vlonginteger) :: polytmp
@@ -233,7 +233,7 @@ subroutine add_neigh(nat,a,order,poly)
   allocate(curr%p)
   allocate(curr%p%nlist(nat))
   do i=1,nat
-      curr%p%nlist(i)=a(i,1)+a(i,2)*packlen+a(i,3)*packlen**2
+      curr%p%nlist(i)=a(1,i)+a(2,i)*packlen+a(3,i)*packlen**2
   end do
   allocate(curr%p%polynomial(order+1))
   curr%p%order=order
@@ -250,7 +250,7 @@ subroutine add_neigh(nat,a,order,poly)
 !  write(*,*)nstruct
 !   write(*,'(A)',advance='no')"X "   
 !   do i=1,nat
-!     write(*,'(3I3)', advance='no')(a(i,j),j=1,3)
+!     write(*,'(3I3)', advance='no')(a(j,i),j=1,3)
 !   end do
 !   write(*,*)
 
@@ -259,7 +259,7 @@ end subroutine add_neigh
 function check_seen(nat,a,order,poly) result(seen)
   implicit none
   integer(kint),intent(in) :: nat
-  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(in) :: a(3,nat)
   integer(kint), intent(out) :: order
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
   logical :: seen
@@ -276,8 +276,8 @@ function check_seen(nat,a,order,poly) result(seen)
   structloop:   do while(associated(curr))
    if (.not. associated(curr%p) ) exit structloop
     do j=1,nat
-!        write(*,*)j,curr%p%nlist(j),a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2,a(j,1),a(j,2),a(j,3)
-        if (curr%p%nlist(j).ne. a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2) then 
+!        write(*,*)j,curr%p%nlist(j),a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2,a(1,j),a(2,j),a(3,j)
+        if (curr%p%nlist(j).ne. a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2) then 
           curr=>curr%next
           cycle structloop
         end if
@@ -327,7 +327,7 @@ contains
 subroutine add_neigh(nat,a,order,poly)
   implicit none
   integer(kint),intent(in) :: nat
-  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(in) :: a(3,nat)
   integer(kint), intent(in) :: order
   type(vlonginteger), intent(in) :: poly(order+1)
   type(vlonginteger) :: polytmp
@@ -351,8 +351,8 @@ subroutine add_neigh(nat,a,order,poly)
   end if
 
 !congrual function to make the distribution more uniform
-  idx2l=mod(a(nat,1)*1103515245+12345,2147483648)+mod(a(nat/2,1)*1103515245+12345,2147483648)+mod(a(1,3)*1103515245+12345,2147483648)++mod(a(nat/2,3)*1103515245+12345,2147483648)
-  idx2l=idx2l+mod(a(nat/3,2)*1103515245+12345,2147483648)
+  idx2l=mod(a(1,nat)*1103515245+12345,2147483648)+mod(a(1,nat/2)*1103515245+12345,2147483648)+mod(a(3,1)*1103515245+12345,2147483648)+mod(a(3,nat/2)*1103515245+12345,2147483648)
+  idx2l=idx2l+mod(a(2,nat/3)*1103515245+12345,2147483648)
 
 
   idx2=iabs(mod(idx2l,nat))+1
@@ -385,7 +385,7 @@ subroutine add_neigh(nat,a,order,poly)
 
 
   do i=1,nat
-      ptmp(ilen+1)%nlist(i)=a(i,1)+a(i,2)*packlen+a(i,3)*packlen**2
+      ptmp(ilen+1)%nlist(i)=a(1,i)+a(2,i)*packlen+a(3,i)*packlen**2
   end do
   allocate(ptmp(ilen+1)%polynomial(order+1))
   ptmp(ilen+1)%order=order
@@ -414,9 +414,9 @@ subroutine add_neigh(nat,a,order,poly)
 !  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
 !  write(*,*)nstruct
 !   write(*,'(A)',advance='no')"X "   
-!   write(*,'(2I3)'),nat,iabs(a(nat,1)-a(nat/2,1))+iabs(a(nat/2,3)-a(1,3))
+!   write(*,'(2I3)'),nat,iabs(a(1,nat)-a(1,nat/2))+iabs(a(3,nat/2)-a(3,1))
 !   do i=1,nat
-!     write(*,'(3I3)', advance='no')(a(i,j),j=1,3)
+!     write(*,'(3I3)', advance='no')(a(j,i),j=1,3)
 !   end do
 !   write(*,*)
 
@@ -425,7 +425,7 @@ end subroutine add_neigh
 function check_seen(nat,a,order,poly) result(seen)
   implicit none
   integer(kint),intent(in) :: nat
-  integer(kint), intent(in) :: a(nat,3)
+  integer(kint), intent(in) :: a(3,nat)
   integer(kint), intent(out) :: order
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
   logical :: seen
@@ -435,10 +435,10 @@ function check_seen(nat,a,order,poly) result(seen)
   type(ptrneigh), target :: xtmp
   integer(int64) :: idx2l
 
-!  idx2=iabs(a(nat,1)-a(nat/2,1))+1+iabs(a(nat/2,3)-a(1,3))
+!  idx2=iabs(a(1,nat)-a(1,nat/2))+1+iabs(a(3,nat/2)-a(3,1))
 
-  idx2l=mod(a(nat,1)*1103515245+12345,2147483648)+mod(a(nat/2,1)*1103515245+12345,2147483648)+mod(a(1,3)*1103515245+12345,2147483648)++mod(a(nat/2,3)*1103515245+12345,2147483648)
-  idx2l=idx2l+mod(a(nat/3,2)*1103515245+12345,2147483648)
+  idx2l=mod(a(1,nat)*1103515245+12345,2147483648)+mod(a(1,nat/2)*1103515245+12345,2147483648)+mod(a(3,1)*1103515245+12345,2147483648)+mod(a(3,nat/2)*1103515245+12345,2147483648)
+  idx2l=idx2l+mod(a(2,nat/3)*1103515245+12345,2147483648)
 
 
   idx2=iabs(mod(idx2l,nat))+1
@@ -450,8 +450,8 @@ function check_seen(nat,a,order,poly) result(seen)
   curr=>xtmp
   structloop:   do i=1,xlen(nat,idx2)
     do j=1,nat
-!        write(*,*)i,j,curr%p(i)%nlist(j),a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2,a(j,1),a(j,2),a(j,3)
-        if (curr%p(i)%nlist(j).ne. a(j,1)+a(j,2)*packlen+a(j,3)*packlen**2) then 
+!        write(*,*)i,j,curr%p(i)%nlist(j),a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2,a(1,j),a(2,j),a(3,j)
+        if (curr%p(i)%nlist(j).ne. a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2) then 
           cycle structloop
         end if
       if (j.eq.nat) then 

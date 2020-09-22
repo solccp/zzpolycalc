@@ -39,7 +39,7 @@ recursive subroutine find_ZZ_polynomial(pah,level)
   else
 !    write(*,'(A)',advance='no')"S "   
 !   do i=1,pah%nat
-!     write(*,'(3I3)', advance='no')(pah%neighborlist(i,j),j=1,3)
+!     write(*,'(3I3)', advance='no')(pah%neighborlist(j,i),j=1,3)
 !   end do
 !   write(*,*)
 

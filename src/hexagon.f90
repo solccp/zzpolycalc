@@ -23,9 +23,9 @@ subroutine find_all_hexagons(nat,pah,nhex,lista)
 !   # if atom i has only 2 neighbors #
 !   ##################################
     if (pah%neighbornumber(i) == 2) then
-      if (pah%neighborlist(i,1) < i) cycle atomloop
-      if (pah%neighborlist(i,2) < i) cycle atomloop
-      call find_aromatic_sextet(pah,sextet,i,pah%neighborlist(i,2),pah%neighborlist(i,1),ring_exists)
+      if (pah%neighborlist(1,i) < i) cycle atomloop
+      if (pah%neighborlist(2,i) < i) cycle atomloop
+      call find_aromatic_sextet(pah,sextet,i,pah%neighborlist(2,i),pah%neighborlist(1,i),ring_exists)
       if (ring_exists) then
         do j=4,6
           if (sextet(j) < i) cycle atomloop
@@ -45,9 +45,9 @@ subroutine find_all_hexagons(nat,pah,nhex,lista)
 !     # loop over all 2-combinations of three neighbors #
 !     ###################################################
       innerloop: do j=1,3
-        atom2=pah%neighborlist(i,mod(j,3)+1)
+        atom2=pah%neighborlist(mod(j,3)+1,i)
         if (atom2 < i) cycle innerloop
-        atom3=pah%neighborlist(i,mod(j+1,3)+1)
+        atom3=pah%neighborlist(mod(j+1,3)+1,i)
         if (atom3 < i) cycle innerloop
         call find_aromatic_sextet(pah,sextet,i,atom2,atom3,ring_exists)
         if (ring_exists) then
@@ -94,9 +94,9 @@ subroutine find_all_pentagons(nat,pah,npent,lista)
 !   # if atom i has only 2 neighbors #
 !   ##################################
     if (pah%neighbornumber(i) == 2) then
-      if (pah%neighborlist(i,1) < i) cycle atomloop
-      if (pah%neighborlist(i,2) < i) cycle atomloop
-      call find_pentagon(pah,pentagon,i,pah%neighborlist(i,2),pah%neighborlist(i,1),ring_exists)
+      if (pah%neighborlist(1,i) < i) cycle atomloop
+      if (pah%neighborlist(2,i) < i) cycle atomloop
+      call find_pentagon(pah,pentagon,i,pah%neighborlist(2,i),pah%neighborlist(1,i),ring_exists)
       if (ring_exists) then
         do j=4,5
           if (pentagon(j) < i) cycle atomloop
@@ -116,9 +116,9 @@ subroutine find_all_pentagons(nat,pah,npent,lista)
 !     # loop over all 2-combinations of three neighbors #
 !     ###################################################
       innerloop: do j=1,3
-        atom2=pah%neighborlist(i,mod(j,3)+1)
+        atom2=pah%neighborlist(mod(j,3)+1,i)
         if (atom2 < i) cycle innerloop
-        atom3=pah%neighborlist(i,mod(j+1,3)+1)
+        atom3=pah%neighborlist(mod(j+1,3)+1,i)
         if (atom3 < i) cycle innerloop
         call find_pentagon(pah,pentagon,i,atom2,atom3,ring_exists)
         if (ring_exists) then

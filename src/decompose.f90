@@ -28,12 +28,12 @@ recursive subroutine decompose(pah,level)
   ring1_exists=.false.
   ring2_exists=.false.
   if (pah%neighbornumber(atom1) == 2) then
-    atom3=pah%neighborlist(1,2)
+    atom3=pah%neighborlist(2,1)
     call find_aromatic_sextet(pah,sextet1,atom1,atom2,atom3,ring1_exists)
   else if (pah%neighbornumber(atom1) == 3) then
-    atom3=pah%neighborlist(1,2)
+    atom3=pah%neighborlist(2,1)
     call find_aromatic_sextet(pah,sextet1,atom1,atom2,atom3,ring1_exists)
-    atom3=pah%neighborlist(1,3)
+    atom3=pah%neighborlist(3,1)
     call find_aromatic_sextet(pah,sextet2,atom1,atom2,atom3,ring2_exists)
   end if
 !  if (ring1_exists) write(*,*)'Ring 1'
@@ -88,7 +88,7 @@ recursive subroutine decompose(pah,level)
 
 !   write(*,'(A)',advance='no')"N "   
 !   do i=1,pah%nat
-!     write(*,'(3I3)', advance='no')(pah%neighborlist(i,j),j=1,3)
+!     write(*,'(3I3)', advance='no')(pah%neighborlist(j,i),j=1,3)
 !   end do
 !   write(*,*)
 !  call print_ZZ_polynomial(pah)  

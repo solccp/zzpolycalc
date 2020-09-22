@@ -21,16 +21,16 @@ recursive subroutine cut_dangling_bonds(pah)
   do while (has_dangling_bonds)
     call check_for_dangling_bonds(pah,has_dangling_bonds,atom1)
     if (has_dangling_bonds) then
-      atom2=pah%neighborlist(atom1,1)
+      atom2=pah%neighborlist(1,atom1)
       do i=1,pah%neighbornumber(atom2)
-        atom3=pah%neighborlist(atom2,i)
+        atom3=pah%neighborlist(i,atom2)
         if (atom3 /= atom1) then
           k=0
           do j=1,pah%neighbornumber(atom3)
-            atom4=pah%neighborlist(atom3,j)
+            atom4=pah%neighborlist(j,atom3)
             if (atom4 /= atom2) then
               k=k+1
-              pah%neighborlist(atom3,k)=atom4
+              pah%neighborlist(k,atom3)=atom4
             end if
           end do
           pah%neighbornumber(atom3)=k
@@ -38,8 +38,8 @@ recursive subroutine cut_dangling_bonds(pah)
       end do
       pah%neighbornumber(atom1)=0
       pah%neighbornumber(atom2)=0
-      pah%neighborlist(atom1,1:3)=0
-      pah%neighborlist(atom2,1:3)=0
+      pah%neighborlist(1:3,atom1)=0
+      pah%neighborlist(1:3,atom2)=0
       atoms(nelim+1)=atom1
       atoms(nelim+2)=atom2
       nelim=nelim+2
@@ -124,15 +124,15 @@ subroutine find_aromatic_sextet(pah,sextet,atom1,atom2,atom3,ring_exists)
 ! # look for the remaining three atoms #
 ! ######################################
   do i=1,pah%neighbornumber(atom3)
-    atom4=pah%neighborlist(atom3,i)
+    atom4=pah%neighborlist(i,atom3)
     if (atom4 /= atom1) then
       do j=1,pah%neighbornumber(atom2)
-        atom5=pah%neighborlist(atom2,j)
+        atom5=pah%neighborlist(j,atom2)
         if (atom5 /= atom1) then
           do k=1,pah%neighbornumber(atom4)
-            atom6=pah%neighborlist(atom4,k)
+            atom6=pah%neighborlist(k,atom4)
             do l=1,pah%neighbornumber(atom5)
-              if (atom6 == pah%neighborlist(atom5,l)) then
+              if (atom6 == pah%neighborlist(l,atom5)) then
                 sextet(4)=atom4
                 sextet(5)=atom5
                 sextet(6)=atom6
@@ -179,13 +179,13 @@ subroutine find_pentagon(pah,pentagon,atom1,atom2,atom3,ring_exists)
 ! # look for the remaining two atoms #
 ! ####################################
   do i=1,pah%neighbornumber(atom3)
-    atom4=pah%neighborlist(atom3,i)
+    atom4=pah%neighborlist(i,atom3)
     if (atom4 /= atom1) then
       do j=1,pah%neighbornumber(atom2)
-        atom5=pah%neighborlist(atom2,j)
+        atom5=pah%neighborlist(j,atom2)
         if (atom5 /= atom1) then
           do l=1,pah%neighbornumber(atom4)
-            if (atom5 == pah%neighborlist(atom4,l)) then
+            if (atom5 == pah%neighborlist(l,atom4)) then
                 pentagon(4)=atom4
                 pentagon(5)=atom5
                 ring_exists=.true.
@@ -230,19 +230,19 @@ subroutine find_edge_ring(pah,sextet,atom1,atom2,ring_exists)
 ! # look for the remaining four atoms #
 ! #####################################
   outer: do i=1,pah%neighbornumber(atom1)
-    atom3=pah%neighborlist(atom1,i)
+    atom3=pah%neighborlist(i,atom1)
     if (atom3 /= atom2) then
       do j=1,pah%neighbornumber(atom2)
-        atom4=pah%neighborlist(atom2,j)
+        atom4=pah%neighborlist(j,atom2)
         if (atom4 /= atom1) then
           do k=1,pah%neighbornumber(atom3)
-            atom5=pah%neighborlist(atom3,k)
+            atom5=pah%neighborlist(k,atom3)
             if (atom5 /= atom1) then
               do l=1,pah%neighbornumber(atom4)
-                atom6=pah%neighborlist(atom4,l)
+                atom6=pah%neighborlist(l,atom4)
                 if (atom6 /= atom2) then
                   do m=1,pah%neighbornumber(atom5)
-                    if (atom6 == pah%neighborlist(atom5,m)) then
+                    if (atom6 == pah%neighborlist(m,atom5)) then
                       sextet(3)=atom3
                       sextet(4)=atom4
                       sextet(5)=atom5
@@ -323,13 +323,13 @@ subroutine check_if_connected(pah,medat)
 ! # translate the structure into the new mapping #
 ! ################################################
   allocate(pah1%neighbornumber(pah%nat))
-  allocate(pah1%neighborlist(pah%nat,3))
+  allocate(pah1%neighborlist(3,pah%nat))
   pah1%neighbornumber=0
   pah1%neighborlist=0
   do k=1,pah%nat
     pah1%neighbornumber(map(k))=pah%neighbornumber(k)
     do i=1,pah%neighbornumber(k)
-      pah1%neighborlist(map(k),i)=map(pah%neighborlist(k,i))
+      pah1%neighborlist(i,map(k))=map(pah%neighborlist(i,k))
     end do
   end do
   pah%neighbornumber=pah1%neighbornumber
@@ -377,9 +377,9 @@ subroutine dfs(pah,nat,visit_list,lnat)
       visit_list(cur_index) = .true.
       lnat = lnat + 1
       do i = 1, pah%neighbornumber(cur_index)
-        if (visit_list(pah%neighborlist(cur_index, i)) == .false.) then
+        if (visit_list(pah%neighborlist(i,cur_index)) == .false.) then
             stack(0) = stack(0) + 1
-            stack(stack(0)) = pah%neighborlist(cur_index, i)
+            stack(stack(0)) = pah%neighborlist(i,cur_index)
         end if
       end do
     end if
@@ -415,11 +415,11 @@ recursive subroutine split_and_decompose(pah,medat,level)
   son1%nat=medat-1
   son1%nbondlistentries=pah%nbondlistentries
   allocate(son1%neighbornumber(son1%nat))
-  allocate(son1%neighborlist(son1%nat,3))
+  allocate(son1%neighborlist(3,son1%nat))
   son2%nat=pah%nat-medat+1
   son2%nbondlistentries=pah%nbondlistentries
   allocate(son2%neighbornumber(son2%nat))
-  allocate(son2%neighborlist(son2%nat,3))
+  allocate(son2%neighborlist(3,son2%nat))
   if (pah%nbondlistentries > 0) then 
     allocate(son1%bondlist(2,son1%nbondlistentries))
     allocate(son2%bondlist(2,son2%nbondlistentries))
@@ -431,11 +431,11 @@ recursive subroutine split_and_decompose(pah,medat,level)
 ! # initialize the son structures #
 ! #################################
   son1%neighbornumber=pah%neighbornumber(1:medat-1)
-  son1%neighborlist=pah%neighborlist(1:medat-1,1:3)
+  son1%neighborlist=pah%neighborlist(1:3,1:medat-1)
   son2%neighbornumber=pah%neighbornumber(medat:pah%nat)
-  son2%neighborlist=pah%neighborlist(medat:pah%nat,1:3)
-  forall (i=1:son2%nat, j=1:3, son2%neighborlist(i,j) /= 0)
-    son2%neighborlist(i,j)=son2%neighborlist(i,j)-son1%nat
+  son2%neighborlist=pah%neighborlist(1:3,medat:pah%nat)
+  forall (i=1:son2%nat, j=1:3, son2%neighborlist(j,i) /= 0)
+    son2%neighborlist(j,i)=son2%neighborlist(j,i)-son1%nat
   end forall
   forall (i=1:son1%nbondlistentries, j=1:2, son1%bondlist(j,i) > son1%nat)
     son1%bondlist(j,i)=0
@@ -510,8 +510,8 @@ subroutine select_edge_bond(pah,atom1,atom2)
       exit outer1
     end if
     do  j=1,pah%neighbornumber(atom1)
-      if (pah%neighborlist(atom1,j) == atom2) cycle
-      atom3=pah%neighborlist(atom1,j)
+      if (pah%neighborlist(j,atom1) == atom2) cycle
+      atom3=pah%neighborlist(j,atom1)
       call find_aromatic_sextet(pah,sextet,atom1,atom2,atom3,ring_exists)
       if (.not. ring_exists) then
         selected=.true.
@@ -528,13 +528,13 @@ subroutine select_edge_bond(pah,atom1,atom2)
     outer: do i=1,pah%nat
       if (pah%neighbornumber(i) == 2) then
         atom1=i
-        atom2=pah%neighborlist(i,1)
+        atom2=pah%neighborlist(1,i)
         exit outer
       else if (pah%neighbornumber(i) == 3) then
         atom1=i
         do j=1,3
-          atom2=pah%neighborlist(atom1,min(j,mod(j,3)+1))
-          atom3=pah%neighborlist(atom1,max(j,mod(j,3)+1))
+          atom2=pah%neighborlist(min(j,mod(j,3)+1),atom1)
+          atom3=pah%neighborlist(max(j,mod(j,3)+1),atom1)
           call find_aromatic_sextet(pah,sextet,atom1,atom2,atom3,ring_exists)
           if (.not. ring_exists) then
             exit outer
@@ -625,7 +625,7 @@ logical function are_neighbors(pah,atom1,atom2)
   
   are_neighbors=.false.
   do i=1,pah%neighbornumber(atom1)
-    if (pah%neighborlist(atom1,i) == atom2) then
+    if (pah%neighborlist(i,atom1) == atom2) then
       are_neighbors=.true.
       exit
     end if
@@ -662,13 +662,13 @@ subroutine select_edge(pah,atom1,atom2)
     outer: do i=1,pah%nat
       if (pah%neighbornumber(i) == 2) then
         atom1=i
-        atom2=pah%neighborlist(i,1)
+        atom2=pah%neighborlist(1,i)
         exit outer
       else if (pah%neighbornumber(i) == 3) then
         atom1=i
         do j=1,3
-          atom2=pah%neighborlist(atom1,min(j,mod(j,3)+1))
-          atom3=pah%neighborlist(atom1,max(j,mod(j,3)+1))
+          atom2=pah%neighborlist(min(j,mod(j,3)+1),atom1)
+          atom3=pah%neighborlist(max(j,mod(j,3)+1),atom1)
           call find_aromatic_sextet(pah,sextet,atom1,atom2,atom3,ring_exists)
           if (.not. ring_exists) then
             exit outer

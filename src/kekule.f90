@@ -45,7 +45,7 @@ recursive subroutine find_all_kekule_structures(pah,nstr)
 !     #######################################################
       nstr=0
       do i=1,2
-        atom2=pah%neighborlist(atom1,i)
+        atom2=pah%neighborlist(i,atom1)
         call create_nobond_daughter(pah,daughter,atom1,atom2)
         call cut_dangling_bonds(daughter)
         call find_all_kekule_structures(daughter,dnstr)
@@ -81,20 +81,20 @@ recursive subroutine split_and_kekule(pah,medat,nstr)
 ! ###############################
   son1%nat=medat-1
   allocate(son1%neighbornumber(son1%nat))
-  allocate(son1%neighborlist(son1%nat,3))
+  allocate(son1%neighborlist(3,son1%nat))
   son2%nat=pah%nat-medat+1
   allocate(son2%neighbornumber(son2%nat))
-  allocate(son2%neighborlist(son2%nat,3))
+  allocate(son2%neighborlist(3,son2%nat))
 
 ! #################################
 ! # initialize the son structures #
 ! #################################
   son1%neighbornumber=pah%neighbornumber(1:medat-1)
-  son1%neighborlist=pah%neighborlist(1:medat-1,1:3)
+  son1%neighborlist=pah%neighborlist(1:3,1:medat-1)
   son2%neighbornumber=pah%neighbornumber(medat:pah%nat)
-  son2%neighborlist=pah%neighborlist(medat:pah%nat,1:3)
-  forall (i=1:son2%nat, j=1:3, son2%neighborlist(i,j) /= 0)
-    son2%neighborlist(i,j)=son2%neighborlist(i,j)-son1%nat
+  son2%neighborlist=pah%neighborlist(1:3,medat:pah%nat)
+  forall (i=1:son2%nat, j=1:3, son2%neighborlist(j,i) /= 0)
+    son2%neighborlist(j,i)=son2%neighborlist(j,i)-son1%nat
   end forall
 
 ! ##############################################

@@ -199,9 +199,9 @@ subroutine schlegel_diagram(nat,pah,geom)
 !   ###############
     do j=1,nat
       do k=1,3
-        if (pah%neighborlist(j,k) .gt. j) then
+        if (pah%neighborlist(k,j) .gt. j) then
           write(21,'(2f12.6)')xyst(1,j),xyst(2,j)
-          write(21,'(2f12.6)')xyst(1,pah%neighborlist(j,k)),xyst(2,pah%neighborlist(j,k))
+          write(21,'(2f12.6)')xyst(1,pah%neighborlist(k,j)),xyst(2,pah%neighborlist(k,j))
           write(21,*)" "
         end if
       end do
@@ -241,10 +241,10 @@ subroutine radial_neighbor(nat,pah,lista5,pn,cn,rn)
   do i=1,3
     istat=1
     do j=1,5
-      if (pah%neighborlist(lista5(cn,pn),i) .eq. lista5(j,pn)) istat=0
+      if (pah%neighborlist(i,lista5(cn,pn)) .eq. lista5(j,pn)) istat=0
     end do
     if (istat .eq. 1) then
-      rn=pah%neighborlist(lista5(cn,pn),i)
+      rn=pah%neighborlist(i,lista5(cn,pn))
     end if
   end do
 

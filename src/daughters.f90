@@ -17,7 +17,7 @@ recursive subroutine create_nobond_daughter(pah,bond,atom1,atom2)
   bond%order=0
   bond%nbondlistentries=pah%nbondlistentries
   allocate(bond%neighbornumber(bond%nat))
-  allocate(bond%neighborlist(bond%nat,3))
+  allocate(bond%neighborlist(3,bond%nat))
   if (bond%nbondlistentries > 0) then
     allocate(bond%bondlist(2,bond%nbondlistentries))
     bond%bondlist=pah%bondlist
@@ -32,20 +32,20 @@ recursive subroutine create_nobond_daughter(pah,bond,atom1,atom2)
   bond%neighbornumber(atom1)=bond%neighbornumber(atom1)-1
   bond%neighbornumber(atom2)=bond%neighbornumber(atom2)-1
   bond%neighborlist=pah%neighborlist
-  bond%neighborlist(atom1,1:3)=0
-  bond%neighborlist(atom2,1:3)=0
+  bond%neighborlist(1:3,atom1)=0
+  bond%neighborlist(1:3,atom2)=0
   j=0
   do i=1,3
-    if (pah%neighborlist(atom1,i) /= atom2) then
+    if (pah%neighborlist(i,atom1) /= atom2) then
       j=j+1
-      bond%neighborlist(atom1,j)=pah%neighborlist(atom1,i)
+      bond%neighborlist(j,atom1)=pah%neighborlist(i,atom1)
     end if
   end do
   j=0
   do i=1,3
-    if (pah%neighborlist(atom2,i) /= atom1) then
+    if (pah%neighborlist(i,atom2) /= atom1) then
       j=j+1
-      bond%neighborlist(atom2,j)=pah%neighborlist(atom2,i)
+      bond%neighborlist(j,atom2)=pah%neighborlist(i,atom2)
     end if
   end do
   call clean_bond_list(bond)
@@ -90,7 +90,7 @@ recursive subroutine create_noatoms_daughter(pah,pah1,nelim,delatoms)
   pah1%order=0
   pah1%nbondlistentries=pah%nbondlistentries
   allocate(pah1%neighbornumber(pah1%nat))
-  allocate(pah1%neighborlist(pah1%nat,3))
+  allocate(pah1%neighborlist(3,pah1%nat))
   if (pah1%nbondlistentries > 0) then
     allocate(pah1%bondlist(2,pah1%nbondlistentries))
   end if
@@ -115,10 +115,10 @@ recursive subroutine create_noatoms_daughter(pah,pah1,nelim,delatoms)
     if (map(i) /= 0) then 
       k=0
       do l=1,pah%neighbornumber(i)
-        m=map(pah%neighborlist(i,l))
+        m=map(pah%neighborlist(l,i))
         if (m /= 0) then
           k=k+1
-          pah1%neighborlist(map(i),k)=m
+          pah1%neighborlist(k,map(i))=m
         end if
       end do
       pah1%neighbornumber(map(i))=k
