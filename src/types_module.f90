@@ -308,11 +308,11 @@ module lookup_module
 use types_module
 use ISO_FORTRAN_ENV
   integer, parameter :: maxat = 400
-  integer, parameter :: packlen = 1024
+  integer(int64), parameter :: packlen = 1048576
 
   integer :: nstruct = 0
   type,public :: neigh
-     integer(int32), pointer :: nlist(:)     
+     integer(int64), pointer :: nlist(:)     
      integer(kint) :: order
      type(vlonginteger),pointer :: polynomial(:)
   end type neigh
