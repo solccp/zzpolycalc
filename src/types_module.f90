@@ -308,7 +308,8 @@ module lookup_module
 use types_module
 use ISO_FORTRAN_ENV
   integer, parameter :: maxat = 400
-  integer(int32), parameter :: packlen = 1024
+  integer(int32), parameter :: packshift = 10
+  integer(int32), parameter :: packlen = 2**packshift
 
   integer :: nstruct = 0
   type,public :: neigh
@@ -385,7 +386,7 @@ subroutine add_neigh(nat,a,order,poly)
 
 
   do i=1,nat
-      ptmp(ilen+1)%nlist(i)=a(1,i)+a(2,i)*packlen+a(3,i)*packlen**2
+      ptmp(ilen+1)%nlist(i)=a(1,i)+ishft(a(2,i),packshift)+ishft(a(3,i),2*packshift)
   end do
   allocate(ptmp(ilen+1)%polynomial(order+1))
   ptmp(ilen+1)%order=order
@@ -451,7 +452,7 @@ function check_seen(nat,a,order,poly) result(seen)
   structloop:   do i=1,xlen(nat,idx2)
     do j=1,nat
 !        write(*,*)i,j,curr%p(i)%nlist(j),a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2,a(1,j),a(2,j),a(3,j)
-        if (curr%p(i)%nlist(j).ne. a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2) then 
+        if (curr%p(i)%nlist(j).ne. a(1,j)+ishft(a(2,j),packshift)+ishft(a(3,j),2*packshift)) then 
           cycle structloop
         end if
       if (j.eq.nat) then 
