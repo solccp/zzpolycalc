@@ -321,8 +321,8 @@ use ISO_FORTRAN_ENV
   type(neigh), pointer :: p(:)
   end type ptrneigh
 
-  type(ptrneigh) :: x(maxat,2*maxat)
-  integer(kint) :: xlen(maxat,2*maxat)
+  type(ptrneigh) :: x(maxat,maxat)
+  integer(kint) :: xlen(maxat,maxat)
 contains 
 subroutine add_neigh(nat,a,order,poly)
   implicit none
@@ -335,7 +335,7 @@ subroutine add_neigh(nat,a,order,poly)
   type(ptrneigh), target :: xtmp
   logical :: first
   type(neigh), pointer :: ptmp(:)
-  integer(int64) :: ipack
+  integer(int64) :: ipack,idx2l
 
   integer :: i,j,ilen,idx2
   nstruct=nstruct+1
@@ -349,7 +349,12 @@ subroutine add_neigh(nat,a,order,poly)
     stop
   end if
 
-  idx2=iabs(a(nat,1)-a(nat/2,1))+1+iabs(a(nat/2,3)-a(1,3))
+!congrual function to make the distribution more uniform
+  idx2l=mod(a(nat,1)*1103515245+12345,2147483648)+mod(a(nat/2,1)*1103515245+12345,2147483648)+mod(a(1,3)*1103515245+12345,2147483648)++mod(a(nat/2,3)*1103515245+12345,2147483648)
+  idx2l=idx2l+mod(a(nat/3,2)*1103515245+12345,2147483648)
+
+
+  idx2=iabs(mod(idx2l,nat))+1
   xtmp=x(nat,idx2)
   curr=>xtmp
   if (associated(curr%p)) then 
@@ -427,8 +432,16 @@ function check_seen(nat,a,order,poly) result(seen)
   type(ptrneigh),pointer :: curr
   type(neigh), pointer :: match
   type(ptrneigh), target :: xtmp
+  integer(int64) :: idx2l
 
-  idx2=iabs(a(nat,1)-a(nat/2,1))+1+iabs(a(nat/2,3)-a(1,3))
+!  idx2=iabs(a(nat,1)-a(nat/2,1))+1+iabs(a(nat/2,3)-a(1,3))
+
+  idx2l=mod(a(nat,1)*1103515245+12345,2147483648)+mod(a(nat/2,1)*1103515245+12345,2147483648)+mod(a(1,3)*1103515245+12345,2147483648)++mod(a(nat/2,3)*1103515245+12345,2147483648)
+  idx2l=idx2l+mod(a(nat/3,2)*1103515245+12345,2147483648)
+
+
+  idx2=iabs(mod(idx2l,nat))+1
+
 
   seen = .false.
 !  write(*,*)nat,xlen(nat)
