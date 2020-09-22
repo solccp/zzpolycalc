@@ -308,11 +308,11 @@ module lookup_module
 use types_module
 use ISO_FORTRAN_ENV
   integer, parameter :: maxat = 400
-  integer, parameter :: packlen = 1048576
+  integer, parameter :: packlen = 1024
 
   integer :: nstruct = 0
   type,public :: neigh
-     integer(int64), pointer :: nlist(:)     
+     integer(int32), pointer :: nlist(:)     
      integer(kint) :: order
      type(vlonginteger),pointer :: polynomial(:)
   end type neigh
@@ -339,6 +339,7 @@ subroutine add_neigh(nat,a,order,poly)
 
   integer :: i,j,ilen,idx2
   nstruct=nstruct+1
+  if (mod(nstruct,1000000).eq.0) write(*,*)'nstruct',nstruct ! print progress
   if (nat>packlen) then 
   print*,"overflow in packlen"
     stop
