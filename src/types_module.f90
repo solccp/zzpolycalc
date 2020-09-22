@@ -3,7 +3,7 @@
 module types_module
 
 !  integer, parameter :: kint = kind(0)
-  integer, parameter :: kint = 8
+  integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 1000
 
