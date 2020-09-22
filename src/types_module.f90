@@ -6,10 +6,11 @@ module types_module
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 1000
+  integer, parameter :: vlongmax = 5
 
   type,public :: vlonginteger
     integer,public :: leadpow
-    integer(kind=4),private :: tabl(40)
+    integer(kind=4),private :: tabl(vlongmax)
   end type vlonginteger
 
   type,public :: structure
@@ -40,7 +41,7 @@ contains
 
   c%tabl=0
   b=a
-  do i=1,40
+  do i=1,vlongmax
     c%tabl(i)=mod(b,10000)
     b=(b-c%tabl(i))/10000
     if (b == 0) then
@@ -63,7 +64,7 @@ contains
   do i=1,c%leadpow
     c%tabl(i)=c%tabl(i)+a%tabl(i)+b%tabl(i)
   end do
-  do i=1,min(39,c%leadpow)
+  do i=1,min(vlongmax-1,c%leadpow)
     if (c%tabl(i) >= 10000) then
       val=mod(c%tabl(i),10000)
       c%tabl(i+1)=c%tabl(i+1)+(c%tabl(i)-val)/10000
@@ -71,12 +72,12 @@ contains
     end if
   end do
 
-  if (c%tabl(40) >= 10000) then
+  if (c%tabl(vlongmax) >= 10000) then
     print*,"overflow in addvli, enlarge size of tabl"
     stop
   end if
  
-  if (c%leadpow < 40) then  
+  if (c%leadpow < vlongmax) then  
     if (c%tabl(c%leadpow+1) /= 0) c%leadpow=c%leadpow+1
   end if
 
@@ -90,11 +91,11 @@ contains
 
   c%tabl=0
   do i=1,a%leadpow
-    do j=1,min(40-i,b%leadpow)
+    do j=1,min(vlongmax-i,b%leadpow)
       c%tabl(i+j-1)=c%tabl(i+j-1)+a%tabl(i)*b%tabl(j)
     end do
   end do
-  do i=1,min(39,a%leadpow+b%leadpow)
+  do i=1,min(vlongmax-1,a%leadpow+b%leadpow)
     if (c%tabl(i) >= 10000) then
       val=mod(c%tabl(i),10000)
       c%tabl(i+1)=c%tabl(i+1)+(c%tabl(i)-val)/10000
@@ -102,13 +103,13 @@ contains
     end if
   end do
 
-  if (c%tabl(40) >= 10000) then
+  if (c%tabl(vlongmax) >= 10000) then
     print*,"overflow in multvli, enlarge size of tabl"
     stop
   end if
 
   c%leadpow=0
-  do i=min(40,a%leadpow+b%leadpow+1),1,-1
+  do i=min(vlongmax,a%leadpow+b%leadpow+1),1,-1
     if (c%tabl(i) /=0) then
       c%leadpow=i
       exit
