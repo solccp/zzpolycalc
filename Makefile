@@ -8,13 +8,15 @@ FC := ifort
 FFLAGS := -ipo -O3 -funroll-loops -no-prec-div -module ${MODDIR} 
 #-check all -debug all
 #FFLAGS := -g3 -O0 -module ${MODDIR} -debug -trace
+#FFLAGS := -g3 -O0 -module ${MODDIR} -debug -trace -check all -debug all
+
 
 LDFLAGS := -static -lpthread
 # -debug all
 #LDFLAGS := -static -lmkl_em64t -lguide -lpthread
 
 COMMON_FILES := types_module
-ZHANG_FILES := zhang input functions daughters findZZ polynomial decompose operators print hexagon schlegel
+ZHANG_FILES := crc zhang input functions daughters findZZ polynomial decompose operators print hexagon schlegel
 
 COMMON_SRCS := $(addsuffix .f90, ${COMMON_FILES})
 COMMON_SRCS := $(addprefix ${SRCDIR}, ${COMMON_SRCS})

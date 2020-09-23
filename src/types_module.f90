@@ -308,7 +308,7 @@ end module lookup_module_list
 module lookup_module
 use types_module
 use ISO_FORTRAN_ENV
-  integer, parameter :: maxat = 400
+  integer, parameter :: maxtab = 2097152
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
 
@@ -323,8 +323,18 @@ use ISO_FORTRAN_ENV
   type(neigh), pointer :: p(:)
   end type ptrneigh
 
-  type(ptrneigh) :: x(maxat,maxat)
-  integer(kint) :: xlen(maxat,maxat)
+  type(ptrneigh) :: x(maxtab)
+  integer(kint) :: xlen(maxtab)
+  interface
+  function crc32_hash(a,cont) result(crc64)
+    use,intrinsic :: ISO_FORTRAN_ENV, only : int32,int64
+    integer(int64)               :: crc64
+    logical,intent(in),optional  :: cont
+    character(len=1),intent(in)  :: a(:)
+  end function crc32_hash
+  end interface
+
+
 contains 
 subroutine add_neigh(nat,a,order,poly)
   implicit none
@@ -338,6 +348,7 @@ subroutine add_neigh(nat,a,order,poly)
   logical :: first
   type(neigh), pointer :: ptmp(:)
   integer(int64) :: ipack,idx2l,idx1l
+  character(len=1) :: buf (3*6*kint),buf2
 
   integer :: i,j,ilen,idx2,idx1
   nstruct=nstruct+1
@@ -347,31 +358,39 @@ subroutine add_neigh(nat,a,order,poly)
     stop
   end if
 
-  if (nat>maxat) then 
-  print*,"overflow in maxat"
-    stop
+!  if (nat>maxat) then 
+!  print*,"overflow in maxat"
+!    stop
+!  end if
+
+
+  buf=transfer(a(1:3,1:6),buf)
+!first neighbor is rather wastful. Add natoms
+!  buf(1:kint)=transfer(nat,buf2)
+  idx1l=crc32_hash(buf)
+  if (nat.ge.12) then
+    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
+    idx1l=idx1l+crc32_hash(buf)
   end if
 
-!congrual function to make the distribution more uniform
-  idx2l=mod(a(1,nat)*1103515245+12345,2147483648)+mod(a(1,nat/2)*1103515245+12345,2147483648)+mod(a(3,1)*1103515245+12345,2147483648)+mod(a(3,nat/2)*1103515245+12345,2147483648)
-  idx2l=idx2l+mod(a(2,nat/3)*1103515245+12345,2147483648)
+ if (nat.ge.18) then
+    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
+    idx1l=idx1l+crc32_hash(buf)
+  end if
 
-  idx2=iabs(mod(idx2l,nat))+1
-
-  idx1l=mod(nat*1103515245+12345,2147483648)+mod(a(2,nat/3)*1103515245+12345,2147483648)+mod(a(1,nat/4)*1103515245+12345,2147483648)+mod(a(3,2*nat/5)*1103515245+12345,2147483648)
-  idx1=iabs(mod(idx1l,nat))+1
+  idx1=iabs(mod(idx1l,maxtab))+1
 
 
-  xtmp=x(idx1,idx2)
+  xtmp=x(idx1)
   curr=>xtmp
   if (associated(curr%p)) then 
      first=.false.
   else
      first=.true.
-     xlen(idx1,idx2)=0
+     xlen(idx1)=0
   end if
   
-  ilen=xlen(idx1,idx2)
+  ilen=xlen(idx1)
 !  write(*,*)nat,ilen
   allocate(ptmp(ilen+1))
 
@@ -381,9 +400,9 @@ subroutine add_neigh(nat,a,order,poly)
 !      write(*,*)'alloc',i,%loc(ptmp(i)%nlist)
 !      allocate(ptmp(i)%polynomial(curr%p(i)%order+1))
 !I have no idea why but this assign pointers and not values
-      ptmp(i)%order=x(idx1,idx2)%p(i)%order
-      ptmp(i)%nlist=>x(idx1,idx2)%p(i)%nlist
-      ptmp(i)%polynomial=>x(idx1,idx2)%p(i)%polynomial
+      ptmp(i)%order=x(idx1)%p(i)%order
+      ptmp(i)%nlist=>x(idx1)%p(i)%nlist
+      ptmp(i)%polynomial=>x(idx1)%p(i)%polynomial
   end do
 
   allocate(ptmp(ilen+1)%nlist(nat))
@@ -408,12 +427,12 @@ subroutine add_neigh(nat,a,order,poly)
 
   if (.not.first)  then 
 !     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
-   deallocate(x(idx1,idx2)%p)
+   deallocate(x(idx1)%p)
   end if
   
 !  write(*,*)'ptmp',%loc(ptmp)
-  x(idx1,idx2)%p=>ptmp
-  xlen(idx1,idx2)=xlen(idx1,idx2)+1
+  x(idx1)%p=>ptmp
+  xlen(idx1)=xlen(idx1)+1
 
 
 
@@ -440,23 +459,36 @@ function check_seen(nat,a,order,poly) result(seen)
   type(neigh), pointer :: match
   type(ptrneigh), target :: xtmp
   integer(int64) :: idx2l,idx1l
-
-!  idx2=iabs(a(1,nat)-a(1,nat/2))+1+iabs(a(3,nat/2)-a(3,1))
-
-  idx2l=mod(a(1,nat)*1103515245+12345,2147483648)+mod(a(1,nat/2)*1103515245+12345,2147483648)+mod(a(3,1)*1103515245+12345,2147483648)+mod(a(3,nat/2)*1103515245+12345,2147483648)
-  idx2l=idx2l+mod(a(2,nat/3)*1103515245+12345,2147483648)
+  character(len=1) :: buf (3*6*kint),buf2
 
 
-  idx2=iabs(mod(idx2l,nat))+1
+  buf=transfer(a(1:3,1:6),buf)
+!first neighbor is rather wastful. Add natoms
+!  buf(1:kint)=transfer(nat,buf2)
 
-  idx1l=mod(nat*1103515245+12345,2147483648)+mod(a(2,nat/3)*1103515245+12345,2147483648)+mod(a(1,nat/4)*1103515245+12345,2147483648)+mod(a(3,2*nat/5)*1103515245+12345,2147483648)
-  idx1=iabs(mod(idx1l,nat))+1
+
+
+!  buf=transfer(a,buf)
+!  write(*,*)'size buf',size(buf)
+  idx1l=crc32_hash(buf)
+  if (nat.ge.12) then
+    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
+    idx1l=idx1l+crc32_hash(buf)
+  end if
+  if (nat.ge.18) then
+    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
+    idx1l=idx1l+crc32_hash(buf)
+  end if
+
+
+  idx1=iabs(mod(idx1l,maxtab))+1
+
 
   seen = .false.
 !  write(*,*)nat,xlen(nat)
-  xtmp=x(idx1,idx2)
+  xtmp=x(idx1)
   curr=>xtmp
-  structloop:   do i=1,xlen(idx1,idx2)
+  structloop:   do i=1,xlen(idx1)
     do j=1,nat
 !        write(*,*)i,j,curr%p(i)%nlist(j),a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2,a(1,j),a(2,j),a(3,j)
         if (curr%p(i)%nlist(j).ne. a(1,j)+ishft(a(2,j),packshift)+ishft(a(3,j),2*packshift)) then 
@@ -470,7 +502,7 @@ function check_seen(nat,a,order,poly) result(seen)
       end if
     end do
  end do structloop
- if (seen) then
+ if (seen) then 
     order=match%order
     allocate(poly(order+1))
      do i=1,order+1
