@@ -337,9 +337,9 @@ subroutine add_neigh(nat,a,order,poly)
   type(ptrneigh), target :: xtmp
   logical :: first
   type(neigh), pointer :: ptmp(:)
-  integer(int64) :: ipack,idx2l
+  integer(int64) :: ipack,idx2l,idx1l
 
-  integer :: i,j,ilen,idx2
+  integer :: i,j,ilen,idx2,idx1
   nstruct=nstruct+1
   if (mod(nstruct,1000000).eq.0) write(*,*)'nstruct',nstruct ! print progress
   if (nat>packlen) then 
@@ -356,18 +356,22 @@ subroutine add_neigh(nat,a,order,poly)
   idx2l=mod(a(1,nat)*1103515245+12345,2147483648)+mod(a(1,nat/2)*1103515245+12345,2147483648)+mod(a(3,1)*1103515245+12345,2147483648)+mod(a(3,nat/2)*1103515245+12345,2147483648)
   idx2l=idx2l+mod(a(2,nat/3)*1103515245+12345,2147483648)
 
-
   idx2=iabs(mod(idx2l,nat))+1
-  xtmp=x(nat,idx2)
+
+  idx1l=mod(nat*1103515245+12345,2147483648)+mod(a(2,nat/3)*1103515245+12345,2147483648)+mod(a(1,nat/4)*1103515245+12345,2147483648)+mod(a(3,2*nat/5)*1103515245+12345,2147483648)
+  idx1=iabs(mod(idx1l,nat))+1
+
+
+  xtmp=x(idx1,idx2)
   curr=>xtmp
   if (associated(curr%p)) then 
      first=.false.
   else
      first=.true.
-     xlen(nat,idx2)=0
+     xlen(idx1,idx2)=0
   end if
   
-  ilen=xlen(nat,idx2)
+  ilen=xlen(idx1,idx2)
 !  write(*,*)nat,ilen
   allocate(ptmp(ilen+1))
 
@@ -377,9 +381,9 @@ subroutine add_neigh(nat,a,order,poly)
 !      write(*,*)'alloc',i,%loc(ptmp(i)%nlist)
 !      allocate(ptmp(i)%polynomial(curr%p(i)%order+1))
 !I have no idea why but this assign pointers and not values
-      ptmp(i)%order=x(nat,idx2)%p(i)%order
-      ptmp(i)%nlist=>x(nat,idx2)%p(i)%nlist
-      ptmp(i)%polynomial=>x(nat,idx2)%p(i)%polynomial
+      ptmp(i)%order=x(idx1,idx2)%p(i)%order
+      ptmp(i)%nlist=>x(idx1,idx2)%p(i)%nlist
+      ptmp(i)%polynomial=>x(idx1,idx2)%p(i)%polynomial
   end do
 
   allocate(ptmp(ilen+1)%nlist(nat))
@@ -404,12 +408,12 @@ subroutine add_neigh(nat,a,order,poly)
 
   if (.not.first)  then 
 !     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
-   deallocate(x(nat,idx2)%p)
+   deallocate(x(idx1,idx2)%p)
   end if
   
 !  write(*,*)'ptmp',%loc(ptmp)
-  x(nat,idx2)%p=>ptmp
-  xlen(nat,idx2)=xlen(nat,idx2)+1
+  x(idx1,idx2)%p=>ptmp
+  xlen(idx1,idx2)=xlen(idx1,idx2)+1
 
 
 
@@ -431,11 +435,11 @@ function check_seen(nat,a,order,poly) result(seen)
   integer(kint), intent(out) :: order
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
   logical :: seen
-  integer :: i,j,k,idx2
+  integer :: i,j,k,idx2,idx1
   type(ptrneigh),pointer :: curr
   type(neigh), pointer :: match
   type(ptrneigh), target :: xtmp
-  integer(int64) :: idx2l
+  integer(int64) :: idx2l,idx1l
 
 !  idx2=iabs(a(1,nat)-a(1,nat/2))+1+iabs(a(3,nat/2)-a(3,1))
 
@@ -445,12 +449,14 @@ function check_seen(nat,a,order,poly) result(seen)
 
   idx2=iabs(mod(idx2l,nat))+1
 
+  idx1l=mod(nat*1103515245+12345,2147483648)+mod(a(2,nat/3)*1103515245+12345,2147483648)+mod(a(1,nat/4)*1103515245+12345,2147483648)+mod(a(3,2*nat/5)*1103515245+12345,2147483648)
+  idx1=iabs(mod(idx1l,nat))+1
 
   seen = .false.
 !  write(*,*)nat,xlen(nat)
-  xtmp=x(nat,idx2)
+  xtmp=x(idx1,idx2)
   curr=>xtmp
-  structloop:   do i=1,xlen(nat,idx2)
+  structloop:   do i=1,xlen(idx1,idx2)
     do j=1,nat
 !        write(*,*)i,j,curr%p(i)%nlist(j),a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2,a(1,j),a(2,j),a(3,j)
         if (curr%p(i)%nlist(j).ne. a(1,j)+ishft(a(2,j),packshift)+ishft(a(3,j),2*packshift)) then 
