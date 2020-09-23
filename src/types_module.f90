@@ -131,6 +131,20 @@ contains
 
   end subroutine printvli
 
+  subroutine printvlinoadv(a)
+  implicit none
+  type(vlonginteger),intent(in) :: a
+  integer(kint) :: i,j,val
+
+  if (a%leadpow == 0) then
+    write(*,*)"0"
+  else
+    write(*,'(1X,I4,40I4.4)',advance='no')(a%tabl(i),i=a%leadpow,1,-1)
+  end if
+
+  end subroutine printvlinoadv
+
+
 
   subroutine print_vli_in_string(pos,string,val)
 !   prints integer val in the string at position pos
@@ -255,6 +269,8 @@ subroutine add_neigh(nat,a,order,poly)
 !   end do
 !   write(*,*)
 
+
+
 end subroutine add_neigh
 
 function check_seen(nat,a,order,poly) result(seen)
@@ -325,6 +341,7 @@ use ISO_FORTRAN_ENV
 
   type(ptrneigh) :: x(maxtab)
   integer(kint) :: xlen(maxtab)
+  integer(kint) :: xuse(maxtab,100)
   interface
   function crc32_hash(a,cont) result(crc64)
     use,intrinsic :: ISO_FORTRAN_ENV, only : int32,int64
@@ -349,8 +366,11 @@ subroutine add_neigh(nat,a,order,poly)
   type(neigh), pointer :: ptmp(:)
   integer(int64) :: ipack,idx2l,idx1l
   character(len=1) :: buf (3*6*kint),buf2
-
   integer :: i,j,ilen,idx2,idx1
+
+
+!  if (nat.le.10 ) return
+
   nstruct=nstruct+1
   if (mod(nstruct,1000000).eq.0) write(*,*)'nstruct',nstruct ! print progress
   if (nat>packlen) then 
@@ -382,6 +402,9 @@ subroutine add_neigh(nat,a,order,poly)
 
 
   xtmp=x(idx1)
+
+  
+
   curr=>xtmp
   if (associated(curr%p)) then 
      first=.false.
@@ -394,6 +417,7 @@ subroutine add_neigh(nat,a,order,poly)
 !  write(*,*)nat,ilen
   allocate(ptmp(ilen+1))
 
+!  xuse(idx1,ilen)=0
    
   do i=1,ilen
 !      allocate(ptmp(i)%nlist(nat))
@@ -434,6 +458,12 @@ subroutine add_neigh(nat,a,order,poly)
   x(idx1)%p=>ptmp
   xlen(idx1)=xlen(idx1)+1
 
+!   write(*,'(A,I5)',advance='no')"P ",nat
+!   do i=1,order+1
+!     call printvlinoadv(poly(i))
+!   end do
+!   write(*,*)
+
 
 
 !  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
@@ -461,7 +491,7 @@ function check_seen(nat,a,order,poly) result(seen)
   integer(int64) :: idx2l,idx1l
   character(len=1) :: buf (3*6*kint),buf2
 
-
+!  if (nat.le.10 ) return
   buf=transfer(a(1:3,1:6),buf)
 !first neighbor is rather wastful. Add natoms
 !  buf(1:kint)=transfer(nat,buf2)
@@ -503,6 +533,7 @@ function check_seen(nat,a,order,poly) result(seen)
     end do
  end do structloop
  if (seen) then 
+!    xuse(idx1,i)=xuse(idx1,i)+1
     order=match%order
     allocate(poly(order+1))
      do i=1,order+1
