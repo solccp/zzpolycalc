@@ -1,12 +1,14 @@
 !################################ module types_module ###############################
 !####################################################################################
 module types_module
+use ISO_FORTRAN_ENV
 
 !  integer, parameter :: kint = kind(0)
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 1000
   integer, parameter :: vlongmax = 5
+  integer, parameter :: vbase = 1000000000
 
   type,public :: vlonginteger
     integer,public :: leadpow
@@ -42,8 +44,8 @@ contains
   c%tabl=0
   b=a
   do i=1,vlongmax
-    c%tabl(i)=mod(b,10000)
-    b=(b-c%tabl(i))/10000
+    c%tabl(i)=mod(b,vbase)
+    b=(b-c%tabl(i))/vbase
     if (b == 0) then
       c%leadpow=i
       exit
@@ -65,14 +67,14 @@ contains
     c%tabl(i)=c%tabl(i)+a%tabl(i)+b%tabl(i)
   end do
   do i=1,min(vlongmax-1,c%leadpow)
-    if (c%tabl(i) >= 10000) then
-      val=mod(c%tabl(i),10000)
-      c%tabl(i+1)=c%tabl(i+1)+(c%tabl(i)-val)/10000
+    if (c%tabl(i) >= vbase) then
+      val=mod(c%tabl(i),vbase)
+      c%tabl(i+1)=c%tabl(i+1)+(c%tabl(i)-val)/vbase
       c%tabl(i)=val
     end if
   end do
 
-  if (c%tabl(vlongmax) >= 10000) then
+  if (c%tabl(vlongmax) >= vbase) then
     print*,"overflow in addvli, enlarge size of tabl"
     stop
   end if
@@ -87,26 +89,29 @@ contains
   implicit none
   type(vlonginteger),intent(in) :: a,b
   type(vlonginteger) :: c
+  integer(int64) :: tmp(vlongmax)
   integer(kint) :: i,j,val
 
-  c%tabl=0
+  tmp=0
   do i=1,a%leadpow
     do j=1,min(vlongmax-i,b%leadpow)
-      c%tabl(i+j-1)=c%tabl(i+j-1)+a%tabl(i)*b%tabl(j)
+      tmp(i+j-1)=tmp(i+j-1)+a%tabl(i)*b%tabl(j)
     end do
   end do
   do i=1,min(vlongmax-1,a%leadpow+b%leadpow)
-    if (c%tabl(i) >= 10000) then
-      val=mod(c%tabl(i),10000)
-      c%tabl(i+1)=c%tabl(i+1)+(c%tabl(i)-val)/10000
-      c%tabl(i)=val
+    if (tmp(i) >= vbase) then
+      val=mod(tmp(i),vbase)
+      tmp(i+1)=tmp(i+1)+(tmp(i)-val)/vbase
+      tmp(i)=val
     end if
   end do
 
-  if (c%tabl(vlongmax) >= 10000) then
+  if (tmp(vlongmax) >= vbase) then
     print*,"overflow in multvli, enlarge size of tabl"
     stop
   end if
+
+  c%tabl=tmp
 
   c%leadpow=0
   do i=min(vlongmax,a%leadpow+b%leadpow+1),1,-1
@@ -165,14 +170,29 @@ contains
         case (100:999)
           write(string(pos:),'(i3)')val%tabl(i)
           pos=pos+3
-        case default
+        case (1000:9999)
           write(string(pos:),'(i4)')val%tabl(i)
           pos=pos+4
+        case (10000:99999)
+          write(string(pos:),'(i5)')val%tabl(i)
+          pos=pos+5
+        case (100000:999999)
+          write(string(pos:),'(i6)')val%tabl(i)
+          pos=pos+6
+        case (1000000:9999999)
+          write(string(pos:),'(i7)')val%tabl(i)
+          pos=pos+7
+        case (10000000:99999999)
+          write(string(pos:),'(i8)')val%tabl(i)
+          pos=pos+8
+        case default
+          write(string(pos:),'(i9)')val%tabl(i)
+          pos=pos+9
       end select
     end do
     do i=val%leadpow-1,1,-1
-      write(string(pos:),'(i4.4)')val%tabl(i)
-      pos=pos+4
+      write(string(pos:),'(i9.9)')val%tabl(i)
+      pos=pos+9
     end do
     return
 
