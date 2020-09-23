@@ -341,7 +341,8 @@ end module lookup_module_list
 
 
 
-module lookup_module
+
+module lookup_module_crc
 use types_module
 use ISO_FORTRAN_ENV
   integer, parameter :: maxtab = 2097152
@@ -563,6 +564,242 @@ function check_seen(nat,a,order,poly) result(seen)
 end function check_seen
 
 
-end module lookup_module
+end module lookup_module_crc
 
+
+module lookup_module_md5
+use types_module
+use ISO_FORTRAN_ENV
+use, intrinsic :: iso_c_binding
+  integer, parameter :: maxtab = 2097152
+  integer(int32), parameter :: packshift = 10
+  integer(int32), parameter :: packlen = 2**packshift
+
+  integer :: nstruct = 0
+  type,public :: neigh
+     integer(int32), pointer :: nlist(:)     
+     integer(kint) :: order
+     type(vlonginteger),pointer :: polynomial(:)
+  end type neigh
+
+  type ptrneigh
+  type(neigh), pointer :: p(:)
+  end type ptrneigh
+
+  type(ptrneigh) :: x(maxtab)
+  integer(kint) :: xlen(maxtab)
+  integer(kint) :: xuse(maxtab,100)
+  interface
+  function crc32_hash(a,cont) result(crc64)
+    use,intrinsic :: ISO_FORTRAN_ENV, only : int32,int64
+    integer(int64)               :: crc64
+    logical,intent(in),optional  :: cont
+    character(len=1),intent(in)  :: a(:)
+  end function crc32_hash
+    subroutine MD5(dat,size,result) bind(C, name='MD5')
+    use, intrinsic :: iso_c_binding
+    integer(C_signed_char) :: result(*)
+    integer(C_long), value :: size
+    character(kind=c_char) :: dat(size)
+  end subroutine MD5
+  end interface
+
+
+contains 
+subroutine add_neigh(nat,a,order,poly)
+  implicit none
+  integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: a(3,nat)
+  integer(int16) :: asmall(3,nat)
+  integer(kint), intent(in) :: order
+  type(vlonginteger), intent(in) :: poly(order+1)
+  type(vlonginteger) :: polytmp
+  type(ptrneigh),pointer :: curr
+  type(ptrneigh), target :: xtmp
+  logical :: first
+  type(neigh), pointer :: ptmp(:)
+  integer(int64) :: ipack,idx2l,idx1l
+  character(len=1) :: buf (3*nat*2),buf2
+  integer :: i,j,ilen,idx2,idx1
+  integer(C_signed_char) :: md5sum(16)
+
+
+!  if (nat.le.10 ) return
+
+  nstruct=nstruct+1
+  if (mod(nstruct,1000000).eq.0) write(*,*)'nstruct',nstruct ! print progress
+  if (nat>packlen) then 
+  print*,"overflow in packlen"
+    stop
+  end if
+
+!  if (nat>maxat) then 
+!  print*,"overflow in maxat"
+!    stop
+!  end if
+
+  asmall=a
+  buf=transfer(asmall(1:3,1:nat),buf)
+  call MD5(buf,size(buf,1,C_long),md5sum)
+  idx1l=transfer(md5sum,idx1l)
+
+!  idx1l=crc32_hash(buf)
+!  if (nat.ge.12) then
+!    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
+!    idx1l=idx1l+crc32_hash(buf)
+!  end if
+
+! if (nat.ge.18) then
+!    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
+!    idx1l=idx1l+crc32_hash(buf)
+!  end if
+
+  idx1=iabs(mod(idx1l,maxtab))+1
+
+
+  xtmp=x(idx1)
+
+  
+
+  curr=>xtmp
+  if (associated(curr%p)) then 
+     first=.false.
+  else
+     first=.true.
+     xlen(idx1)=0
+  end if
+  
+  ilen=xlen(idx1)
+!  write(*,*)nat,ilen
+  allocate(ptmp(ilen+1))
+
+!  xuse(idx1,ilen)=0
+   
+  do i=1,ilen
+!      allocate(ptmp(i)%nlist(nat))
+!      write(*,*)'alloc',i,%loc(ptmp(i)%nlist)
+!      allocate(ptmp(i)%polynomial(curr%p(i)%order+1))
+!I have no idea why but this assign pointers and not values
+      ptmp(i)%order=x(idx1)%p(i)%order
+      ptmp(i)%nlist=>x(idx1)%p(i)%nlist
+      ptmp(i)%polynomial=>x(idx1)%p(i)%polynomial
+  end do
+
+  allocate(ptmp(ilen+1)%nlist(nat))
+!  write(*,*)'alloc ilen+1',ilen+1,%loc(ptmp(ilen+1)%nlist)
+
+
+  do i=1,nat
+      ptmp(ilen+1)%nlist(i)=a(1,i)+ishft(a(2,i),packshift)+ishft(a(3,i),2*packshift)
+  end do
+  allocate(ptmp(ilen+1)%polynomial(order+1))
+  ptmp(ilen+1)%order=order
+  do i=1,order+1
+    call cpvli(poly(i),ptmp(ilen+1)%polynomial(i))
+  end do
+
+!  do i=1,ilen
+!    write(*,*)'Dealloc nlist',i,%loc(x(nat)%p(i)%nlist),%loc(x(nat)%p(i)),%loc(ptmp(i)%nlist),%loc(ptmp(i))
+!    deallocate(x(nat)%p(i)%nlist)
+!    write(*,*)'Dealloc polynomial',i
+!    deallocate(x(nat)%p(i)%polynomial)
+!  end do
+
+  if (.not.first)  then 
+!     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
+   deallocate(x(idx1)%p)
+  end if
+  
+!  write(*,*)'ptmp',%loc(ptmp)
+  x(idx1)%p=>ptmp
+  xlen(idx1)=xlen(idx1)+1
+
+!   write(*,'(A,I5)',advance='no')"P ",nat
+!   do i=1,order+1
+!     call printvlinoadv(poly(i))
+!   end do
+!   write(*,*)
+
+
+
+!  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
+!  write(*,*)nstruct
+!   write(*,'(A)',advance='no')"X "   
+!   write(*,'(2I3)'),nat,iabs(a(1,nat)-a(1,nat/2))+iabs(a(3,nat/2)-a(3,1))
+!   do i=1,nat
+!     write(*,'(3I3)', advance='no')(a(j,i),j=1,3)
+!   end do
+!   write(*,*)
+
+end subroutine add_neigh
+
+function check_seen(nat,a,order,poly) result(seen)
+  implicit none
+  integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: a(3,nat)
+  integer(int16) :: asmall(3,nat)
+  integer(kint), intent(out) :: order
+  type(vlonginteger), allocatable,intent(out) :: poly(:)  
+  logical :: seen
+  integer :: i,j,k,idx2,idx1
+  type(ptrneigh),pointer :: curr
+  type(neigh), pointer :: match
+  type(ptrneigh), target :: xtmp
+  integer(int64) :: idx2l,idx1l
+  character(len=1) :: buf (3*nat*2),buf2
+  integer(C_signed_char) :: md5sum(16)
+
+!  if (nat.le.10 ) return
+  asmall=a
+  buf=transfer(asmall(1:3,1:nat),buf)
+
+  call MD5(buf,size(buf,1,C_long),md5sum)
+  idx1l=transfer(md5sum,idx1l)
+
+
+
+!  idx1l=crc32_hash(buf)
+!  if (nat.ge.12) then
+!    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
+!    idx1l=idx1l+crc32_hash(buf)
+!  end if
+!  if (nat.ge.18) then
+!    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
+!    idx1l=idx1l+crc32_hash(buf)
+!  end if
+
+
+  idx1=iabs(mod(idx1l,maxtab))+1
+
+
+  seen = .false.
+!  write(*,*)nat,xlen(nat)
+  xtmp=x(idx1)
+  curr=>xtmp
+  structloop:   do i=1,xlen(idx1)
+    do j=1,nat
+!        write(*,*)i,j,curr%p(i)%nlist(j),a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2,a(1,j),a(2,j),a(3,j)
+        if (curr%p(i)%nlist(j).ne. a(1,j)+ishft(a(2,j),packshift)+ishft(a(3,j),2*packshift)) then 
+          cycle structloop
+        end if
+      if (j.eq.nat) then 
+        seen=.true.
+!        write(*,*)'match'
+        match=>curr%p(i)
+        exit structloop
+      end if
+    end do
+ end do structloop
+ if (seen) then 
+!    xuse(idx1,i)=xuse(idx1,i)+1
+    order=match%order
+    allocate(poly(order+1))
+     do i=1,order+1
+      call cpvli(match%polynomial(i),poly(i))
+    end do
+ end if
+end function check_seen
+
+
+end module lookup_module_md5
 
