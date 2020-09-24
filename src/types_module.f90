@@ -573,8 +573,7 @@ module lookup_module_md5
 use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
-!  integer, parameter :: maxtab = 2097152
-  integer, parameter :: maxtab = 2097
+  integer, parameter :: maxtab = 2097152
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
 
