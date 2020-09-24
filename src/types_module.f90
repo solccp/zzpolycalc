@@ -571,13 +571,14 @@ module lookup_module_md5
 use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
-  integer, parameter :: maxtab = 2097152
+!  integer, parameter :: maxtab = 2097152
+  integer, parameter :: maxtab = 2097
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
 
   integer :: nstruct = 0
   type,public :: neigh
-     integer(int32), pointer :: nlist(:)     
+     integer(C_signed_char), pointer :: nlist(:)     
      integer(kint) :: order
      type(vlonginteger),pointer :: polynomial(:)
   end type neigh
@@ -685,12 +686,12 @@ subroutine add_neigh(nat,a,order,poly)
       ptmp(i)%polynomial=>x(idx1)%p(i)%polynomial
   end do
 
-  allocate(ptmp(ilen+1)%nlist(nat))
+  allocate(ptmp(ilen+1)%nlist(16))
 !  write(*,*)'alloc ilen+1',ilen+1,%loc(ptmp(ilen+1)%nlist)
 
 
-  do i=1,nat
-      ptmp(ilen+1)%nlist(i)=a(1,i)+ishft(a(2,i),packshift)+ishft(a(3,i),2*packshift)
+  do i=1,16
+      ptmp(ilen+1)%nlist(i)=md5sum(i)
   end do
   allocate(ptmp(ilen+1)%polynomial(order+1))
   ptmp(ilen+1)%order=order
@@ -777,12 +778,11 @@ function check_seen(nat,a,order,poly) result(seen)
   xtmp=x(idx1)
   curr=>xtmp
   structloop:   do i=1,xlen(idx1)
-    do j=1,nat
-!        write(*,*)i,j,curr%p(i)%nlist(j),a(1,j)+a(2,j)*packlen+a(3,j)*packlen**2,a(1,j),a(2,j),a(3,j)
-        if (curr%p(i)%nlist(j).ne. a(1,j)+ishft(a(2,j),packshift)+ishft(a(3,j),2*packshift)) then 
+    do j=1,16
+        if (curr%p(i)%nlist(j).ne. md5sum(j)) then 
           cycle structloop
         end if
-      if (j.eq.nat) then 
+      if (j.eq.16) then 
         seen=.true.
 !        write(*,*)'match'
         match=>curr%p(i)
