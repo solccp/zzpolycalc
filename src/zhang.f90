@@ -13,7 +13,7 @@ program zhang_polynomial
   use types_module
   use lookup_module_md5
   implicit none
-  integer(kint) :: i,nhex,level=0
+  integer(kint) :: i,nhex,level=0,j,notused
   integer(kint),allocatable,dimension(:,:) :: lista
   type(structure) :: pah
 
@@ -32,6 +32,15 @@ program zhang_polynomial
 ! ###########################
   call print_ZZ_polynomial(pah)
   write(*,*)'Unique',nstruct
+  notused=0
+  do i=1,maxtab
+    do j=1,xlen(i)
+!      write(*,*)'iseen',i,j,x(i)%p(j)%iseen
+       if (x(i)%p(j)%iseen .gt. 0) notused=notused+1
+    end do
+  end do
+
+  write(*,*)'Not used:',notused
 
 end
 !####################################################################################

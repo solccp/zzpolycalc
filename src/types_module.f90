@@ -573,15 +573,19 @@ module lookup_module_md5
 use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
-  integer, parameter :: maxtab = 209715200
+  integer, parameter :: maxtab = 2097152
+!  integer, parameter :: highmark =  50000000
+integer, parameter :: highmark =  5000000
 !  integer, parameter :: maxtab = 100
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
   logical :: firstrun = .true.
   integer :: nstruct = 0
+  integer :: nstructall = 0
   type,public :: neigh
      integer(C_signed_char), pointer :: nlist(:)     
      integer(kint) :: order
+     integer(kint) :: iseen
      type(vlonginteger),pointer :: polynomial(:)
   end type neigh
 
@@ -591,6 +595,7 @@ use, intrinsic :: iso_c_binding
 
   type(ptrneigh),allocatable :: x(:)
   integer(kint),allocatable :: xlen(:)
+  integer(kint),allocatable :: irepl(:)
   interface
   function crc32_hash(a,cont) result(crc64)
     use,intrinsic :: ISO_FORTRAN_ENV, only : int32,int64
@@ -624,12 +629,11 @@ subroutine add_neigh(nat,a,order,poly)
   character(len=1) :: buf (3*nat*2),buf2
   integer :: i,j,ilen,idx2,idx1
   integer(C_signed_char) :: md5sum(16)
-
+  logical :: replace
+  integer :: mem
 
 !  if (nat.le.10 ) return
 
-  nstruct=nstruct+1
-  if (mod(nstruct,1000000).eq.0) write(*,*)'nstruct',nstruct ! print progress
   if (nat>packlen) then 
   print*,"overflow in packlen"
     stop
@@ -639,6 +643,12 @@ subroutine add_neigh(nat,a,order,poly)
 !  print*,"overflow in maxat"
 !    stop
 !  end if
+
+  nstructall=nstructall+1
+  if (mod(nstructall,1000000).eq.0)  then
+    call system_mem_usage(mem)
+    write(*,*)'nstruct',nstructall,nstruct,'mem',mem
+  end if 
 
   asmall=a
   buf=transfer(asmall(1:3,1:nat),buf)
@@ -670,9 +680,18 @@ subroutine add_neigh(nat,a,order,poly)
   else
      first=.true.
      xlen(idx1)=0
+     irepl(idx1)=1
   end if
   
   ilen=xlen(idx1)
+  if (nstruct.gt.highmark .and. .not. first) then
+    replace=.true.
+  else
+    replace=.false.
+  end if
+
+  if (.not. replace) then
+
 !  write(*,*)nat,ilen
   allocate(ptmp(ilen))
 
@@ -684,6 +703,7 @@ subroutine add_neigh(nat,a,order,poly)
       allocate(ptmp(i)%polynomial(x(idx1)%p(i)%order+1))
     
       ptmp(i)%order=x(idx1)%p(i)%order
+      ptmp(i)%iseen=x(idx1)%p(i)%iseen
       ptmp(i)%nlist=x(idx1)%p(i)%nlist
       ptmp(i)%polynomial=x(idx1)%p(i)%polynomial
       deallocate(x(idx1)%p(i)%nlist,x(idx1)%p(i)%polynomial)
@@ -697,6 +717,7 @@ subroutine add_neigh(nat,a,order,poly)
       allocate(x(idx1)%p(i)%polynomial(ptmp(i)%order+1))
     
       x(idx1)%p(i)%order=ptmp(i)%order
+      x(idx1)%p(i)%iseen=ptmp(i)%iseen
       x(idx1)%p(i)%nlist=ptmp(i)%nlist
       x(idx1)%p(i)%polynomial=ptmp(i)%polynomial
       deallocate(ptmp(i)%nlist,ptmp(i)%polynomial)
@@ -711,6 +732,7 @@ subroutine add_neigh(nat,a,order,poly)
       x(idx1)%p(ilen+1)%nlist(i)=md5sum(i)
   end do
   x(idx1)%p(ilen+1)%order=order
+  x(idx1)%p(ilen+1)%iseen=0
   do i=1,order+1
     call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
   end do
@@ -730,6 +752,32 @@ subroutine add_neigh(nat,a,order,poly)
 !  write(*,*)'ptmp',%loc(ptmp)
 !  x(idx1)%p=>ptmp
   xlen(idx1)=xlen(idx1)+1
+  nstruct=nstruct+1
+  if (nstruct.eq.highmark) write(*,*)'High mark',nstruct,' achieved' 
+else ! replace
+
+  j=irepl(idx1) 
+  do i=1,16
+      x(idx1)%p(j)%nlist(i)=md5sum(i)
+  end do
+ 
+  if (x(idx1)%p(j)%order .ne. order) then
+     deallocate(x(idx1)%p(j)%polynomial) 
+     allocate(x(idx1)%p(j)%polynomial(order+1))
+  end if
+ 
+
+  x(idx1)%p(j)%order=order
+  x(idx1)%p(j)%iseen=0
+ 
+  do i=1,order+1
+    call cpvli(poly(i),x(idx1)%p(j)%polynomial(i))
+  end do
+
+  j=j+1
+  if (j.gt.xlen(idx1)) j=1
+  irepl(idx1)=j
+end if
 
 !   write(*,'(A,I5)',advance='no')"P ",nat
 !   do i=1,order+1
@@ -771,7 +819,7 @@ function check_seen(nat,a,order,poly) result(seen)
 
 
   if (firstrun) then
-    allocate(x(maxtab),xlen(maxtab))
+    allocate(x(maxtab),xlen(maxtab),irepl(maxtab))
     write(*,*)sizeof(x),sizeof(xlen),sizeof(curr),sizeof(temp),sizeof(temp2)
     firstrun=.false.
   end if
@@ -820,12 +868,56 @@ function check_seen(nat,a,order,poly) result(seen)
  if (seen) then 
 !    xuse(idx1,i)=xuse(idx1,i)+1
     order=match%order
+    x(idx1)%p(i)%iseen=x(idx1)%p(i)%iseen+1
     allocate(poly(order+1))
      do i=1,order+1
       call cpvli(match%polynomial(i),poly(i))
     end do
  end if
 end function check_seen
+
+
+!from stackexchange
+subroutine system_mem_usage(valueRSS)
+use ifport !if on intel compiler
+implicit none
+integer, intent(out) :: valueRSS
+
+character(len=200):: filename=' '
+character(len=80) :: line
+character(len=8)  :: pid_char=' '
+integer :: pid
+logical :: ifxst
+
+valueRSS=-1    ! return negative number if not found
+
+!--- get process ID
+
+pid=getpid()
+write(pid_char,'(I8)') pid
+filename='/proc/'//trim(adjustl(pid_char))//'/status'
+
+!--- read system file
+
+inquire (file=filename,exist=ifxst)
+if (.not.ifxst) then
+  write (*,*) 'system file does not exist'
+  return
+endif
+
+open(unit=100, file=filename, action='read')
+do
+  read (100,'(a)',end=120) line
+  if (line(1:6).eq.'VmRSS:') then
+     read (line(7:),*) valueRSS
+     exit
+  endif
+enddo
+120 continue
+close(100)
+
+return
+end subroutine system_mem_usage
 
 
 end module lookup_module_md5
