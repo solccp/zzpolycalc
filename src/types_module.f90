@@ -822,6 +822,7 @@ function check_seen(nat,a,order,poly) result(seen)
     allocate(x(maxtab),xlen(maxtab),irepl(maxtab))
     write(*,*)sizeof(x),sizeof(xlen),sizeof(curr),sizeof(temp),sizeof(temp2)
     firstrun=.false.
+    xlen=0
   end if
 
 !  if (nat.le.10 ) return
