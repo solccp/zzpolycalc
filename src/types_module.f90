@@ -207,7 +207,7 @@ module lookup_module_list
 use types_module
 use ISO_FORTRAN_ENV
   integer, parameter :: maxat = 1000
-  integer, parameter :: packlen = 1048576
+  integer, parameter :: packlen = 1024
 
   integer :: nstruct = 0
   type,public :: neigh
@@ -419,7 +419,8 @@ subroutine add_neigh(nat,a,order,poly)
     idx1l=idx1l+crc32_hash(buf)
   end if
 
-  idx1=iabs(mod(idx1l,maxtab))+1
+  idx1=mod(idx1l,maxtab)
+  idx1=iabs(idx1)+1
 
 
   xtmp=x(idx1)
@@ -532,7 +533,8 @@ function check_seen(nat,a,order,poly) result(seen)
   end if
 
 
-  idx1=iabs(mod(idx1l,maxtab))+1
+  idx1=mod(idx1l,maxtab)
+  idx1=iabs(idx1)+1
 
 
   seen = .false.
@@ -655,7 +657,8 @@ subroutine add_neigh(nat,a,order,poly)
 !    idx1l=idx1l+crc32_hash(buf)
 !  end if
 
-  idx1=iabs(mod(idx1l,maxtab))+1
+  idx1=mod(idx1l,maxtab)
+  idx1=iabs(idx1)+1
 
 
   xtmp=x(idx1)
@@ -770,7 +773,8 @@ function check_seen(nat,a,order,poly) result(seen)
 !  end if
 
 
-  idx1=iabs(mod(idx1l,maxtab))+1
+  idx1=mod(idx1l,maxtab)
+  idx1=iabs(idx1)+1
 
 
   seen = .false.

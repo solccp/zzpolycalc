@@ -373,11 +373,11 @@ subroutine dfs(pah,nat,visit_list,lnat)
   do while(stack(0) > 0)
     cur_index = stack(stack(0))
     stack(0) = stack(0) - 1
-    if (visit_list(cur_index) == .false.) then
+    if (visit_list(cur_index) .eqv. .false.) then
       visit_list(cur_index) = .true.
       lnat = lnat + 1
       do i = 1, pah%neighbornumber(cur_index)
-        if (visit_list(pah%neighborlist(i,cur_index)) == .false.) then
+        if (visit_list(pah%neighborlist(i,cur_index)) .eqv. .false.) then
             stack(0) = stack(0) + 1
             stack(stack(0)) = pah%neighborlist(i,cur_index)
         end if
