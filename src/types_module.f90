@@ -393,7 +393,7 @@ subroutine add_neigh(nat,a,order,poly)
 !  if (nat.le.10 ) return
 
   nstruct=nstruct+1
-  if (mod(nstruct,1000000).eq.0) write(*,*)'nstruct',nstruct ! print progress
+  if (mod(nstruct,10000).eq.0) write(*,*)'nstruct',nstruct ! print progress
   if (nat>packlen) then 
   print*,"overflow in packlen"
     stop
@@ -574,9 +574,10 @@ use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
   integer, parameter :: maxtab = 2097152
+!  integer, parameter :: maxtab = 100
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
-
+  logical :: firstrun = .true.
   integer :: nstruct = 0
   type,public :: neigh
      integer(C_signed_char), pointer :: nlist(:)     
@@ -588,9 +589,8 @@ use, intrinsic :: iso_c_binding
   type(neigh), pointer :: p(:)
   end type ptrneigh
 
-  type(ptrneigh) :: x(maxtab)
-  integer(kint) :: xlen(maxtab)
-  integer(kint) :: xuse(maxtab,100)
+  type(ptrneigh),allocatable :: x(:)
+  integer(kint),allocatable :: xlen(:)
   interface
   function crc32_hash(a,cont) result(crc64)
     use,intrinsic :: ISO_FORTRAN_ENV, only : int32,int64
@@ -710,7 +710,7 @@ subroutine add_neigh(nat,a,order,poly)
 
   if (.not.first)  then 
 !     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
-   deallocate(x(idx1)%p)
+    deallocate(x(idx1)%p)
   end if
   
 !  write(*,*)'ptmp',%loc(ptmp)
@@ -751,6 +751,11 @@ function check_seen(nat,a,order,poly) result(seen)
   integer(int64) :: idx2l,idx1l
   character(len=1) :: buf (3*nat*2),buf2
   integer(C_signed_char) :: md5sum(16)
+
+  if (firstrun) then
+    allocate(x(maxtab),xlen(maxtab))
+    firstrun=.false.
+  end if
 
 !  if (nat.le.10 ) return
   asmall=a
