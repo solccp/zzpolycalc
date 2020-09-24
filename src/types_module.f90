@@ -573,7 +573,7 @@ module lookup_module_md5
 use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
-  integer, parameter :: maxtab = 2097152
+  integer, parameter :: maxtab = 209715200
 !  integer, parameter :: maxtab = 100
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
@@ -674,31 +674,45 @@ subroutine add_neigh(nat,a,order,poly)
   
   ilen=xlen(idx1)
 !  write(*,*)nat,ilen
-  allocate(ptmp(ilen+1))
+  allocate(ptmp(ilen))
 
+!   write(*,*)ilen,sizeof(ptmp)
 !  xuse(idx1,ilen)=0
    
   do i=1,ilen
-!      allocate(ptmp(i)%nlist(nat))
-!      write(*,*)'alloc',i,%loc(ptmp(i)%nlist)
-!      allocate(ptmp(i)%polynomial(curr%p(i)%order+1))
-!I have no idea why but this assign pointers and not values
+      allocate(ptmp(i)%nlist(16))
+      allocate(ptmp(i)%polynomial(x(idx1)%p(i)%order+1))
+    
       ptmp(i)%order=x(idx1)%p(i)%order
-      ptmp(i)%nlist=>x(idx1)%p(i)%nlist
-      ptmp(i)%polynomial=>x(idx1)%p(i)%polynomial
+      ptmp(i)%nlist=x(idx1)%p(i)%nlist
+      ptmp(i)%polynomial=x(idx1)%p(i)%polynomial
+      deallocate(x(idx1)%p(i)%nlist,x(idx1)%p(i)%polynomial)
   end do
 
-  allocate(ptmp(ilen+1)%nlist(16))
-!  write(*,*)'alloc ilen+1',ilen+1,%loc(ptmp(ilen+1)%nlist)
+  if (.not. first) deallocate(x(idx1)%p)
+  
+  allocate(x(idx1)%p(ilen+1))
+  do i=1,ilen
+      allocate(x(idx1)%p(i)%nlist(16))
+      allocate(x(idx1)%p(i)%polynomial(ptmp(i)%order+1))
+    
+      x(idx1)%p(i)%order=ptmp(i)%order
+      x(idx1)%p(i)%nlist=ptmp(i)%nlist
+      x(idx1)%p(i)%polynomial=ptmp(i)%polynomial
+      deallocate(ptmp(i)%nlist,ptmp(i)%polynomial)
+  end do
+  deallocate(ptmp)
+
+  allocate(x(idx1)%p(ilen+1)%nlist(16))
+  allocate(x(idx1)%p(ilen+1)%polynomial(order+1))
 
 
   do i=1,16
-      ptmp(ilen+1)%nlist(i)=md5sum(i)
+      x(idx1)%p(ilen+1)%nlist(i)=md5sum(i)
   end do
-  allocate(ptmp(ilen+1)%polynomial(order+1))
-  ptmp(ilen+1)%order=order
+  x(idx1)%p(ilen+1)%order=order
   do i=1,order+1
-    call cpvli(poly(i),ptmp(ilen+1)%polynomial(i))
+    call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
   end do
 
 !  do i=1,ilen
@@ -708,13 +722,13 @@ subroutine add_neigh(nat,a,order,poly)
 !    deallocate(x(nat)%p(i)%polynomial)
 !  end do
 
-  if (.not.first)  then 
+ ! if (.not.first)  then 
 !     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
-    deallocate(x(idx1)%p)
-  end if
+!    deallocate(x(idx1)%p)
+!  end if
   
 !  write(*,*)'ptmp',%loc(ptmp)
-  x(idx1)%p=>ptmp
+!  x(idx1)%p=>ptmp
   xlen(idx1)=xlen(idx1)+1
 
 !   write(*,'(A,I5)',advance='no')"P ",nat
@@ -752,8 +766,13 @@ function check_seen(nat,a,order,poly) result(seen)
   character(len=1) :: buf (3*nat*2),buf2
   integer(C_signed_char) :: md5sum(16)
 
+  type(neigh) :: temp
+  integer(int64), pointer :: temp2
+
+
   if (firstrun) then
     allocate(x(maxtab),xlen(maxtab))
+    write(*,*)sizeof(x),sizeof(xlen),sizeof(curr),sizeof(temp),sizeof(temp2)
     firstrun=.false.
   end if
 
