@@ -574,18 +574,19 @@ use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
   integer, parameter :: maxtab = 2097152
-!  integer, parameter :: highmark =  50000000
-integer, parameter :: highmark =  5000000
+  integer, parameter :: highmark =   50000000
+!  integer, parameter :: highmark =  5000000
 !  integer, parameter :: maxtab = 100
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
   logical :: firstrun = .true.
-  integer :: nstruct = 0
-  integer :: nstructall = 0
+  integer(int64) :: nstruct = 0
+  integer(int64) :: nstructall = 0
   type,public :: neigh
      integer(C_signed_char), pointer :: nlist(:)     
      integer(kint) :: order
      integer(kint) :: iseen
+     integer(int64) :: lastseen
      type(vlonginteger),pointer :: polynomial(:)
   end type neigh
 
@@ -625,9 +626,9 @@ subroutine add_neigh(nat,a,order,poly)
   type(ptrneigh), target :: xtmp
   logical :: first
   type(neigh), pointer :: ptmp(:)
-  integer(int64) :: ipack,idx2l,idx1l
+  integer(int64) :: ipack,idx2l,idx1l,highscore,score
   character(len=1) :: buf (3*nat*2),buf2
-  integer :: i,j,ilen,idx2,idx1
+  integer :: i,j,ilen,idx2,idx1,ihighscore
   integer(C_signed_char) :: md5sum(16)
   logical :: replace
   integer :: mem
@@ -704,6 +705,7 @@ subroutine add_neigh(nat,a,order,poly)
     
       ptmp(i)%order=x(idx1)%p(i)%order
       ptmp(i)%iseen=x(idx1)%p(i)%iseen
+      ptmp(i)%lastseen=x(idx1)%p(i)%lastseen
       ptmp(i)%nlist=x(idx1)%p(i)%nlist
       ptmp(i)%polynomial=x(idx1)%p(i)%polynomial
       deallocate(x(idx1)%p(i)%nlist,x(idx1)%p(i)%polynomial)
@@ -718,6 +720,7 @@ subroutine add_neigh(nat,a,order,poly)
     
       x(idx1)%p(i)%order=ptmp(i)%order
       x(idx1)%p(i)%iseen=ptmp(i)%iseen
+      x(idx1)%p(i)%lastseen=ptmp(i)%lastseen
       x(idx1)%p(i)%nlist=ptmp(i)%nlist
       x(idx1)%p(i)%polynomial=ptmp(i)%polynomial
       deallocate(ptmp(i)%nlist,ptmp(i)%polynomial)
@@ -733,6 +736,7 @@ subroutine add_neigh(nat,a,order,poly)
   end do
   x(idx1)%p(ilen+1)%order=order
   x(idx1)%p(ilen+1)%iseen=0
+  x(idx1)%p(ilen+1)%lastseen=nstructall
   do i=1,order+1
     call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
   end do
@@ -756,7 +760,23 @@ subroutine add_neigh(nat,a,order,poly)
   if (nstruct.eq.highmark) write(*,*)'High mark',nstruct,' achieved' 
 else ! replace
 
-  j=irepl(idx1) 
+! find best candidate to replace
+
+highscore=0
+ihighscore=0
+do j=1,xlen(idx1)
+  score=nstructall-x(idx1)%p(j)%lastseen
+  score=score/(x(idx1)%p(j)%iseen+1)
+!  score=score*(nat**2) nat must be first stored
+!  write(*,*)'score',j,score,x(idx1)%p(j)%lastseen,x(idx1)%p(j)%iseen
+  if (score.gt.highscore .or. j.eq.1) then
+     highscore=score
+     ihighscore=j
+  end if
+end do
+  j=ihighscore
+!  j=irepl(idx1)
+!  write(*,*)'highscore',j,highscore,xlen(idx1)
   do i=1,16
       x(idx1)%p(j)%nlist(i)=md5sum(i)
   end do
@@ -769,13 +789,14 @@ else ! replace
 
   x(idx1)%p(j)%order=order
   x(idx1)%p(j)%iseen=0
+  x(idx1)%p(j)%lastseen=nstructall
  
   do i=1,order+1
     call cpvli(poly(i),x(idx1)%p(j)%polynomial(i))
   end do
 
-  j=j+1
-  if (j.gt.xlen(idx1)) j=1
+!  j=j+1
+!  if (j.gt.xlen(idx1)) j=1
   irepl(idx1)=j
 end if
 
@@ -870,6 +891,7 @@ function check_seen(nat,a,order,poly) result(seen)
 !    xuse(idx1,i)=xuse(idx1,i)+1
     order=match%order
     x(idx1)%p(i)%iseen=x(idx1)%p(i)%iseen+1
+    x(idx1)%p(i)%lastseen=nstructall
     allocate(poly(order+1))
      do i=1,order+1
       call cpvli(match%polynomial(i),poly(i))
