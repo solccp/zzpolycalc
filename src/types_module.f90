@@ -394,7 +394,7 @@ subroutine add_neigh(nat,a,order,poly)
 !  if (nat.le.10 ) return
 
   nstruct=nstruct+1
-  if (mod(nstruct,10000).eq.0) write(*,*)'nstruct',nstruct ! print progress
+  if (mod(nstruct,1000000).eq.0) write(*,*)'nstruct',nstruct ! print progress
   if (nat>packlen) then 
   print*,"overflow in packlen"
     stop
