@@ -9,6 +9,7 @@ use ISO_FORTRAN_ENV
   integer, parameter :: maxatoms = 1000
   integer, parameter :: vlongmax = 5
   integer, parameter :: vbase = 1000000000
+  integer, parameter :: maxpolylength = 1000
 
   type,public :: vlonginteger
     integer,public :: leadpow
@@ -157,7 +158,7 @@ contains
     integer(kint) :: i
     integer(kint), intent(inout) :: pos
     type(vlonginteger) :: val
-    character(len=500) :: string
+    character(len=maxpolylength) :: string
 
     do i=val%leadpow,val%leadpow
       select case (val%tabl(i))
@@ -810,10 +811,10 @@ end if
 
 !  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
 !  write(*,*)nstruct
-!   write(*,'(A)',advance='no')"X "   
+!   write(*,'(A,I7)',advance='no')"X ",nstruct
 !   write(*,'(2I3)'),nat,iabs(a(1,nat)-a(1,nat/2))+iabs(a(3,nat/2)-a(3,1))
 !   do i=1,nat
-!     write(*,'(3I3)', advance='no')(a(j,i),j=1,3)
+!     write(*,'(3I4)', advance='no')(a(j,i),j=1,3)
 !   end do
 !   write(*,*)
 
@@ -897,6 +898,13 @@ function check_seen(nat,a,order,poly) result(seen)
       call cpvli(match%polynomial(i),poly(i))
     end do
  end if
+!   write(*,'(A,L)',advance='no')"F ",seen   
+!   do i=1,nat
+!     write(*,'(3I4)', advance='no')(a(j,i),j=1,3)
+!   end do
+!   write(*,*)
+
+
 end function check_seen
 
 
