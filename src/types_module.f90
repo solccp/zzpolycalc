@@ -96,7 +96,7 @@ contains
   tmp=0
   do i=1,a%leadpow
     do j=1,min(vlongmax-i,b%leadpow)
-      tmp(i+j-1)=tmp(i+j-1)+a%tabl(i)*b%tabl(j)
+      tmp(i+j-1)=tmp(i+j-1)+int(a%tabl(i),int64)*int(b%tabl(j),int64)
     end do
   end do
   do i=1,min(vlongmax-1,a%leadpow+b%leadpow)
