@@ -12,7 +12,7 @@ subroutine print_ZZ_polynomial(pah)
   integer(kint) :: i,cpos
   type(vlonginteger) :: total
   type(structure) :: pah
-  character(len=500) :: finalZZpolynomial
+  character(len=maxpolylength) :: finalZZpolynomial
 
 ! #########################
 ! # initialize the string #
@@ -79,7 +79,7 @@ subroutine print_int_in_string(pos,string,val)
   use types_module
   implicit none
   integer(kint) :: val,pos
-  character(len=500) :: string
+  character(len=maxpolylength) :: string
 
   select case (val)
   case (0:9)
