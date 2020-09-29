@@ -6,8 +6,8 @@ use ISO_FORTRAN_ENV
 !  integer, parameter :: kint = kind(0)
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
-  integer, parameter :: maxatoms = 1000
-  integer, parameter :: vlongmax = 5
+  integer, parameter :: maxatoms = 2200
+  integer, parameter :: vlongmax = 9
   integer, parameter :: vbase = 1000000000
   integer, parameter :: maxpolylength = 1000
 
@@ -585,7 +585,8 @@ use, intrinsic :: iso_c_binding
   integer(int64) :: nstructall = 0
   type,public :: neigh
      integer(C_signed_char), pointer :: nlist(:)     
-     integer(kint) :: order
+     integer(int16) :: order
+     integer(int16) :: nat
      integer(kint) :: iseen
      integer(int64) :: lastseen
      type(vlonginteger),pointer :: polynomial(:)
@@ -627,7 +628,8 @@ subroutine add_neigh(nat,a,order,poly)
   type(ptrneigh), target :: xtmp
   logical :: first
   type(neigh), pointer :: ptmp(:)
-  integer(int64) :: ipack,idx2l,idx1l,highscore,score
+  integer(int64) :: ipack,idx2l,idx1l
+  real(8)        :: highscore,score
   character(len=1) :: buf (3*nat*2),buf2
   integer :: i,j,ilen,idx2,idx1,ihighscore
   integer(C_signed_char) :: md5sum(16)
@@ -636,10 +638,10 @@ subroutine add_neigh(nat,a,order,poly)
 
 !  if (nat.le.10 ) return
 
-  if (nat>packlen) then 
-  print*,"overflow in packlen"
-    stop
-  end if
+!  if (nat>packlen) then 
+!  print*,"overflow in packlen"
+!    stop
+!  end if
 
 !  if (nat>maxat) then 
 !  print*,"overflow in maxat"
@@ -706,6 +708,7 @@ subroutine add_neigh(nat,a,order,poly)
     
       ptmp(i)%order=x(idx1)%p(i)%order
       ptmp(i)%iseen=x(idx1)%p(i)%iseen
+      ptmp(i)%nat=x(idx1)%p(i)%nat
       ptmp(i)%lastseen=x(idx1)%p(i)%lastseen
       ptmp(i)%nlist=x(idx1)%p(i)%nlist
       ptmp(i)%polynomial=x(idx1)%p(i)%polynomial
@@ -721,6 +724,7 @@ subroutine add_neigh(nat,a,order,poly)
     
       x(idx1)%p(i)%order=ptmp(i)%order
       x(idx1)%p(i)%iseen=ptmp(i)%iseen
+      x(idx1)%p(i)%nat=ptmp(i)%nat
       x(idx1)%p(i)%lastseen=ptmp(i)%lastseen
       x(idx1)%p(i)%nlist=ptmp(i)%nlist
       x(idx1)%p(i)%polynomial=ptmp(i)%polynomial
@@ -737,6 +741,7 @@ subroutine add_neigh(nat,a,order,poly)
   end do
   x(idx1)%p(ilen+1)%order=order
   x(idx1)%p(ilen+1)%iseen=0
+  x(idx1)%p(ilen+1)%nat=nat
   x(idx1)%p(ilen+1)%lastseen=nstructall
   do i=1,order+1
     call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
@@ -768,7 +773,7 @@ ihighscore=0
 do j=1,xlen(idx1)
   score=nstructall-x(idx1)%p(j)%lastseen
   score=score/(x(idx1)%p(j)%iseen+1)
-!  score=score*(nat**2) nat must be first stored
+  score=score/(x(idx1)%p(j)%nat) 
 !  write(*,*)'score',j,score,x(idx1)%p(j)%lastseen,x(idx1)%p(j)%iseen
   if (score.gt.highscore .or. j.eq.1) then
      highscore=score
@@ -790,6 +795,7 @@ end do
 
   x(idx1)%p(j)%order=order
   x(idx1)%p(j)%iseen=0
+  x(idx1)%p(j)%nat=nat
   x(idx1)%p(j)%lastseen=nstructall
  
   do i=1,order+1
@@ -842,7 +848,7 @@ function check_seen(nat,a,order,poly) result(seen)
 
   if (firstrun) then
     allocate(x(maxtab),xlen(maxtab),irepl(maxtab))
-    write(*,*)sizeof(x),sizeof(xlen),sizeof(curr),sizeof(temp),sizeof(temp2)
+!    write(*,*)sizeof(x),sizeof(xlen),sizeof(curr),sizeof(temp),sizeof(temp2)
     firstrun=.false.
     xlen=0
   end if
