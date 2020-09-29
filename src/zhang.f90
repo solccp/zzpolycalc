@@ -25,7 +25,7 @@ program zhang_polynomial
 ! #############################################################
 ! # find recursively the ZZ polynomial of the given structure #
 ! #############################################################
-  call find_ZZ_polynomial(pah,level)
+  call find_ZZ_polynomial(pah,level,0)
 
 ! ###########################
 ! # print the ZZ polynomial #

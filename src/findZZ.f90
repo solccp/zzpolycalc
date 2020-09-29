@@ -1,13 +1,13 @@
 !###################### subroutine find_ZZ_polynomial ###############################
 !####################################################################################
-recursive subroutine find_ZZ_polynomial(pah,level)
+recursive subroutine find_ZZ_polynomial(pah,level,path)
 ! 
 ! find resursively the ZZ polynomial for the structure pah
 !
   use types_module
   use lookup_module_md5
   implicit none
-  integer(kint) :: medat,level
+  integer(kint) :: medat,level,path
   type(structure) :: pah
   integer i,j
   logical :: seen
@@ -55,7 +55,7 @@ recursive subroutine find_ZZ_polynomial(pah,level)
  
 
     if (.not. seen) then
-      call decompose(pah,level)
+      call decompose(pah,level,path)
 
       call add_neigh(pah%nat,pah%neighborlist,pah%order,pah%polynomial)
     end if
@@ -65,7 +65,7 @@ recursive subroutine find_ZZ_polynomial(pah,level)
 !   # if pah is disconnected, split it and decompose the fragments further #
 !   ########################################################################
     else
-      call split_and_decompose(pah,medat,level)
+      call split_and_decompose(pah,medat,level,path)
     end if
 
   end if

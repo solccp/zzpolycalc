@@ -1,15 +1,16 @@
 !############################ subroutine decompose ##################################
 !####################################################################################
-recursive subroutine decompose(pah,level)
+recursive subroutine decompose(pah,level,path)
 !
 ! decompose the original parent structure (pah) into three daughter structures:
 !   1. with one edge bond deleted (between atom1 and atom2)
 !   2. with two edge atoms (atom1 & atom2) deleted
 !   3. with one ring containing atom1 & atom2 deleted
 ! 
+! path denotes the path taken with bond=0
   use types_module
   implicit none
-  integer(kint) :: atom1,atom2,atom3,i,level,nelim,j
+  integer(kint) :: atom1,atom2,atom3,i,level,nelim,j,path
   integer(kint),dimension(6) :: sextet1,sextet2
   integer(kint),dimension(2) :: atoms
   type(structure),intent(inout) :: pah
@@ -38,6 +39,10 @@ recursive subroutine decompose(pah,level)
   end if
 !  if (ring1_exists) write(*,*)'Ring 1'
 !  if (ring2_exists) write(*,*)'Ring 2'
+
+!ring1_exists=.false.
+!ring2_exists=.false.
+
 
 ! ##################################
 ! # create the daughter structures #
@@ -71,15 +76,25 @@ recursive subroutine decompose(pah,level)
 ! ###############################################
 ! # find ZZ polynomials for daughter structures #
 ! ###############################################
-  call find_ZZ_polynomial(bond,level+1)
-  call find_ZZ_polynomial(corners,level+1)
+
+  call find_ZZ_polynomial(bond,level+1,path) ! this way path==0 denotes pure bond cutting path
+!  if (path.eq.0) then 
+!    write(*,'(A,I4)',advance='no')'bondlevel: ',level+1
+!    call print_ZZ_polynomial(bond)
+!  end if
+
+
+
+  call find_ZZ_polynomial(corners,level+1,path+1)
+    
   if (ring1_exists) then
-    call find_ZZ_polynomial(ring1,level+1)
+    call find_ZZ_polynomial(ring1,level+1,path+2)
   end if
   if (ring2_exists) then
-    call find_ZZ_polynomial(ring2,level+1)
+    call find_ZZ_polynomial(ring2,level+1,path+2)
   end if
 
+ 
 ! ###############################################
 ! # find ZZ polynomial for the parent structure #
 ! ###############################################

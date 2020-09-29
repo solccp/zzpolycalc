@@ -395,7 +395,7 @@ end subroutine dfs
 
 !###################### subroutine split_and_decompose ##############################
 !####################################################################################
-recursive subroutine split_and_decompose(pah,medat,level)
+recursive subroutine split_and_decompose(pah,medat,level,path)
 !
 ! split a disconnected polycyclic benzenoid structure pah into two substructures
 ! * son1 which is connected and contains (medat-1) atoms
@@ -406,7 +406,7 @@ recursive subroutine split_and_decompose(pah,medat,level)
 !
   use types_module
   implicit none
-  integer(kint) :: medat,i,j,level
+  integer(kint) :: medat,i,j,level,path
   type(structure) :: pah,son1,son2
 
 ! ###############################
@@ -452,8 +452,8 @@ recursive subroutine split_and_decompose(pah,medat,level)
 ! ###################################################
 ! # find the ZZ polynomials for both son structures #
 ! ###################################################
-  call find_ZZ_polynomial(son1,level+1)
-  call find_ZZ_polynomial(son2,level+1)
+  call find_ZZ_polynomial(son1,level+1,path)
+  call find_ZZ_polynomial(son2,level+1,path)
 
 ! ######################################################
 ! # multiply the ZZ polynomials of both son structures #
