@@ -19,6 +19,7 @@ subroutine print_ZZ_polynomial(pah)
 ! #########################
   finalZZpolynomial=''
   cpos=1
+  total=pah%polynomial(1)
   call print_vli_in_string(cpos,finalZZpolynomial,pah%polynomial(1))
   if (pah%order > 0) then
     write(finalZZpolynomial(cpos:),*)'+ '
