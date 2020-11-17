@@ -6,7 +6,7 @@ use ISO_FORTRAN_ENV
 !  integer, parameter :: kint = kind(0)
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
-  integer, parameter :: maxatoms = 2200
+  integer, parameter :: maxatoms = 50000
   integer, parameter :: vlongmax = 9
   integer, parameter :: vbase = 1000000000
   integer, parameter :: maxpolylength = 1000
@@ -780,8 +780,8 @@ ihighscore=0
 do j=1,xlen(idx1)
   score=nstructall-x(idx1)%p(j)%lastseen
   score=score/(x(idx1)%p(j)%iseen+1)
-!  score=score/(x(idx1)%p(j)%nat**2) 
-  score=score/(x(idx1)%p(j)%nat) 
+  score=score/(x(idx1)%p(j)%nat**2) 
+!  score=score/(x(idx1)%p(j)%nat) 
 !  write(*,*)'score',j,score,x(idx1)%p(j)%lastseen,x(idx1)%p(j)%iseen
   if (score.gt.highscore .or. j.eq.1) then
      highscore=score
