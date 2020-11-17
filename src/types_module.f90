@@ -574,8 +574,9 @@ module lookup_module_md5
 use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
+!  integer, parameter :: maxtab = 2097152
   integer, parameter :: maxtab = 2097152
-  integer, parameter :: highmark =   50000000
+  integer, parameter :: highmark =   5000000
 !  integer, parameter :: highmark =  5000000
 !  integer, parameter :: maxtab = 100
   integer(int32), parameter :: packshift = 10
@@ -616,9 +617,10 @@ use, intrinsic :: iso_c_binding
 
 
 contains 
-subroutine add_neigh(nat,a,order,poly)
+subroutine add_neigh(nat,nbnum,a,order,poly)
   implicit none
   integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: nbnum(nat)
   integer(kint), intent(in) :: a(3,nat)
   integer(int16) :: asmall(3,nat)
   integer(kint), intent(in) :: order
@@ -654,7 +656,12 @@ subroutine add_neigh(nat,a,order,poly)
     write(*,*)'nstruct',nstructall,nstruct,'mem',mem
   end if 
 
-  asmall=a
+  asmall=0 ! fills outside of neighbornumber with zeroes
+  do i=1,nat
+   do j=1,nbnum(i)
+     asmall(j,i)=a(j,i)
+   end do
+  end do
   buf=transfer(asmall(1:3,1:nat),buf)
   call MD5(buf,size(buf,1,C_long),md5sum)
   idx1l=transfer(md5sum,idx1l)
@@ -773,6 +780,7 @@ ihighscore=0
 do j=1,xlen(idx1)
   score=nstructall-x(idx1)%p(j)%lastseen
   score=score/(x(idx1)%p(j)%iseen+1)
+!  score=score/(x(idx1)%p(j)%nat**2) 
   score=score/(x(idx1)%p(j)%nat) 
 !  write(*,*)'score',j,score,x(idx1)%p(j)%lastseen,x(idx1)%p(j)%iseen
   if (score.gt.highscore .or. j.eq.1) then
@@ -817,18 +825,18 @@ end if
 
 !  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
 !  write(*,*)nstruct
-!   write(*,'(A,I7)',advance='no')"X ",nstruct
-!   write(*,'(2I3)'),nat,iabs(a(1,nat)-a(1,nat/2))+iabs(a(3,nat/2)-a(3,1))
+!   write(*,'(A,I7)',advance='no')"X ",nat
 !   do i=1,nat
-!     write(*,'(3I4)', advance='no')(a(j,i),j=1,3)
+!     write(*,'(3I5)', advance='no')(asmall(j,i),j=1,3)
 !   end do
 !   write(*,*)
 
 end subroutine add_neigh
 
-function check_seen(nat,a,order,poly) result(seen)
+function check_seen(nat,nbnum,a,order,poly) result(seen)
   implicit none
   integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: nbnum(nat)
   integer(kint), intent(in) :: a(3,nat)
   integer(int16) :: asmall(3,nat)
   integer(kint), intent(out) :: order
@@ -854,7 +862,14 @@ function check_seen(nat,a,order,poly) result(seen)
   end if
 
 !  if (nat.le.10 ) return
-  asmall=a
+
+  asmall=0 ! fills outside of neighbornumber with zeroes
+  do i=1,nat
+   do j=1,nbnum(i)
+     asmall(j,i)=a(j,i)
+   end do
+  end do
+
   buf=transfer(asmall(1:3,1:nat),buf)
 
   call MD5(buf,size(buf,1,C_long),md5sum)
@@ -904,7 +919,7 @@ function check_seen(nat,a,order,poly) result(seen)
       call cpvli(match%polynomial(i),poly(i))
     end do
  end if
-!   write(*,'(A,L)',advance='no')"F ",seen   
+!   write(*,'(A,I5,L)',advance='no')"F ",nat,seen   
 !   do i=1,nat
 !     write(*,'(3I4)', advance='no')(a(j,i),j=1,3)
 !   end do
