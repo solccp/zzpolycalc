@@ -50,14 +50,14 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
 !   #############################################
     if (medat == 0) then
 
-    seen=check_seen(pah%nat,pah%neighborlist,pah%order,pah%polynomial)
+    seen=check_seen(pah%nat,pah%neighbornumber,pah%neighborlist,pah%order,pah%polynomial)
 !    write(*,*)seen
  
 
     if (.not. seen) then
       call decompose(pah,level,path)
 
-      call add_neigh(pah%nat,pah%neighborlist,pah%order,pah%polynomial)
+      call add_neigh(pah%nat,pah%neighbornumber,pah%neighborlist,pah%order,pah%polynomial)
     end if
 
 
