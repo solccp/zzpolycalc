@@ -56,6 +56,9 @@ contains
   end function setvli
 
 
+
+
+
   function addvli(a,b) result(c)
   implicit none
   type(vlonginteger),intent(in) :: a,b
@@ -198,6 +201,15 @@ contains
     return
 
   end subroutine print_vli_in_string
+
+
+  subroutine writetofile(iunit,a,n)
+  implicit none
+  integer(kint),intent(in) :: iunit,n
+  type(vlonginteger) :: a(n)
+  integer(kint) :: i,j
+  write(iunit)(a(j)%leadpow,(a(j)%tabl(i),i=1,a(j)%leadpow),j=1,n)
+  end subroutine writetofile
 
 end module types_module
 
@@ -832,6 +844,57 @@ end if
 !   write(*,*)
 
 end subroutine add_neigh
+
+
+subroutine writetodisk
+implicit none
+  type(ptrneigh),pointer :: curr
+  type(ptrneigh), target :: xtmp
+  logical :: first
+  integer(int64) :: ipack,idx2l,idx1l
+  real(8)        :: highscore,score
+  integer :: i,j,ilen,idx2,idx1,ihighscore
+  integer(C_signed_char) :: md5sum(16)
+  integer(kint) :: leadpowmax=0
+!  call MD5(buf,size(buf,1,C_long),md5sum)
+!  idx1l=transfer(md5sum,idx1l)
+
+!  idx1l=crc32_hash(buf)
+!  if (nat.ge.12) then
+!    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
+!    idx1l=idx1l+crc32_hash(buf)
+!  end if
+
+! if (nat.ge.18) then
+!    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
+!    idx1l=idx1l+crc32_hash(buf)
+!  end if
+
+  open(23,file='cache.bin',FORM='UNFORMATTED')
+  write(23)vlongmax
+
+  do idx1=1,maxtab
+    xtmp=x(idx1)
+    curr=>xtmp
+    if (associated(curr%p)) then 
+       first=.false.
+       ilen=xlen(idx1)
+    else
+       first=.true.
+       ilen=0
+    end if
+    do i=1,ilen
+      write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,x(idx1)%p(i)%nlist
+      call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
+      do j=1,x(idx1)%p(i)%order+1
+        if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
+!        write(*,*)leadpowmax,j,x(idx1)%p(i)%order
+      end do
+    end do
+  end do
+  write(*,*)'Max large integer size: ',leadpowmax
+end subroutine writetodisk
+
 
 function check_seen(nat,nbnum,a,order,poly) result(seen)
   implicit none
