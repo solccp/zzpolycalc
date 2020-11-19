@@ -216,6 +216,11 @@ contains
   integer(kint),intent(in) :: iunit,n
   type(vlonginteger) :: a(n)
   integer(kint) :: i,j
+  do i=1,n
+    a(i)%leadpow=0
+    a(i)%tabl=0
+  end do
+
   read(iunit)(a(j)%leadpow,(a(j)%tabl(i),i=1,a(j)%leadpow),j=1,n)
   do i=1,n
 !    write(*,*)i,a(j)%leadpow
