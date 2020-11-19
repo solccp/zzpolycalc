@@ -66,7 +66,7 @@ contains
   integer(kint) :: i,val
 
   c%tabl=0
-  c%leadpow=max(a%leadpow,b%leadpow)
+  c%leadpow=max(a%leadpow,b%leadpow) ! this implies that the numbers must have tabl zeroed beyond leadpow. Otherwise corruption may happen. 
   do i=1,c%leadpow
     c%tabl(i)=c%tabl(i)+a%tabl(i)+b%tabl(i)
   end do
