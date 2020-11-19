@@ -7,7 +7,7 @@ use ISO_FORTRAN_ENV
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 50000
-  integer, parameter :: vlongmax = 9
+  integer, parameter :: vlongmax = 23
   integer, parameter :: vbase = 1000000000
   integer, parameter :: maxpolylength = 1000
 
@@ -210,6 +210,22 @@ contains
   integer(kint) :: i,j
   write(iunit)(a(j)%leadpow,(a(j)%tabl(i),i=1,a(j)%leadpow),j=1,n)
   end subroutine writetofile
+
+  subroutine readfromfile(iunit,a,n)
+  implicit none
+  integer(kint),intent(in) :: iunit,n
+  type(vlonginteger) :: a(n)
+  integer(kint) :: i,j
+  read(iunit)(a(j)%leadpow,(a(j)%tabl(i),i=1,a(j)%leadpow),j=1,n)
+  do i=1,n
+!    write(*,*)i,a(j)%leadpow
+    if (a(i)%leadpow.gt. vlongmax) then
+      print*,"overflow in readfromfile, enlarge size of tabl"
+      stop
+    end if
+  end do
+  end subroutine readfromfile
+
 
 end module types_module
 
@@ -587,8 +603,10 @@ use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
 !  integer, parameter :: maxtab = 2097152
-  integer, parameter :: maxtab = 2097152
+  integer, parameter :: maxtab = 209715
   integer, parameter :: highmark =   5000000
+  integer(int64), parameter :: writemark =   50000000
+!integer(int64), parameter :: writemark =   1000000
 !  integer, parameter :: highmark =  5000000
 !  integer, parameter :: maxtab = 100
   integer(int32), parameter :: packshift = 10
@@ -629,7 +647,7 @@ use, intrinsic :: iso_c_binding
 
 
 contains 
-subroutine add_neigh(nat,nbnum,a,order,poly)
+subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
   implicit none
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: nbnum(nat)
@@ -647,6 +665,11 @@ subroutine add_neigh(nat,nbnum,a,order,poly)
   character(len=1) :: buf (3*nat*2),buf2
   integer :: i,j,ilen,idx2,idx1,ihighscore
   integer(C_signed_char) :: md5sum(16)
+  integer(C_signed_char),OPTIONAL :: md5file(16)
+  integer(kint),OPTIONAL :: iseen
+  integer(int64),OPTIONAL :: lastseen
+  logical,OPTIONAL :: duringread
+
   logical :: replace
   integer :: mem
 
@@ -668,14 +691,29 @@ subroutine add_neigh(nat,nbnum,a,order,poly)
     write(*,*)'nstruct',nstructall,nstruct,'mem',mem
   end if 
 
+  if (.not.present(md5file) .and. .not. present(duringread)) then
+   if (mod(nstructall,writemark).eq.0)  then
+    write(*,*)'Saving cache'
+    call execute_command_line ("mv cache.bin cache.bin.bak")
+    call writetodisk
+    call execute_command_line ("rm cache.bin.bak")
+   end if
+  end if
+
+  
   asmall=0 ! fills outside of neighbornumber with zeroes
-  do i=1,nat
-   do j=1,nbnum(i)
-     asmall(j,i)=a(j,i)
-   end do
-  end do
-  buf=transfer(asmall(1:3,1:nat),buf)
-  call MD5(buf,size(buf,1,C_long),md5sum)
+
+  if(.not. present(md5file)) then
+    do i=1,nat
+     do j=1,nbnum(i)
+       asmall(j,i)=a(j,i)
+     end do
+    end do
+    buf=transfer(asmall(1:3,1:nat),buf)
+    call MD5(buf,size(buf,1,C_long),md5sum)
+  else
+    md5sum=md5file
+  end if
   idx1l=transfer(md5sum,idx1l)
 
 !  idx1l=crc32_hash(buf)
@@ -759,9 +797,17 @@ subroutine add_neigh(nat,nbnum,a,order,poly)
       x(idx1)%p(ilen+1)%nlist(i)=md5sum(i)
   end do
   x(idx1)%p(ilen+1)%order=order
-  x(idx1)%p(ilen+1)%iseen=0
+  if (.not.present(iseen)) then 
+    x(idx1)%p(ilen+1)%iseen=0
+  else
+    x(idx1)%p(ilen+1)%iseen=iseen
+  end if
   x(idx1)%p(ilen+1)%nat=nat
-  x(idx1)%p(ilen+1)%lastseen=nstructall
+  if (.not.present(lastseen)) then
+    x(idx1)%p(ilen+1)%lastseen=nstructall
+  else
+    x(idx1)%p(ilen+1)%lastseen=lastseen
+  end if
   do i=1,order+1
     call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
   end do
@@ -893,7 +939,53 @@ implicit none
     end do
   end do
   write(*,*)'Max large integer size: ',leadpowmax
+  close(23)
 end subroutine writetodisk
+
+
+subroutine readfromdisk
+implicit none
+  integer(C_signed_char) :: md5sum(16)
+  integer :: vlong,ires
+  integer(kint) :: nbnum(maxatoms)
+  integer(kint) ::  a(3,maxatoms)
+     integer(int16) :: order
+     integer(int16) :: nat
+     integer(kint) :: order32
+     integer(kint) :: nat32
+     integer(kint) :: iseen
+     integer(int64) :: lastseen
+     type(vlonginteger),allocatable :: poly(:)
+
+   allocate(x(maxtab),xlen(maxtab),irepl(maxtab))
+   firstrun=.false.
+   xlen=0
+  write(*,*)'Reading cache.bin'
+  open(23,file='cache.bin',FORM='UNFORMATTED')
+  read(23)vlong
+  if (vlong.gt.vlongmax) then
+    write(*,*)'WARNING!'
+    write(*,*)'Size of vlong on file is larger than in the current code'
+    write(*,*)'The readfromfile procedure may not catch corruption'
+    write(*,*)'Inspect the results carefully'
+  end if
+  ires=0
+  do while (ires.eq.0)
+  read(23,IOSTAT=ires)order,iseen,nat,lastseen,md5sum
+  if (ires.eq.0) then
+   allocate(poly(order+1))
+   order32=order
+   nat32=nat
+!   write(*,*)order,iseen,nat,lastseen,md5sum
+   call readfromfile(23,poly,order32+1)
+   call add_neigh(nat32,nbnum,a,order32,poly,md5sum,iseen,lastseen,.true.)
+   deallocate(poly)
+  end if
+  end do
+  close(23)  
+  write(*,*)'cache.bin processed'
+
+end subroutine readfromdisk
 
 
 function check_seen(nat,nbnum,a,order,poly) result(seen)

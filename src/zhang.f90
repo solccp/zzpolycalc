@@ -16,11 +16,18 @@ program zhang_polynomial
   integer(kint) :: i,nhex,level=0,j,notused
   integer(kint),allocatable,dimension(:,:) :: lista
   type(structure) :: pah
+  logical :: cacheexists
 
 ! ############################################################
 ! # read initial geometry data and create topological matrix #
 ! ############################################################
   call read_input(pah)
+
+! read cache from disk 
+  inquire(file='cache.bin',exist=cacheexists)
+  if (cacheexists) then
+    call readfromdisk
+  end if
 
 ! #############################################################
 ! # find recursively the ZZ polynomial of the given structure #
@@ -41,6 +48,7 @@ program zhang_polynomial
   end do
 
   write(*,*)'Not used:',notused
+  call writetodisk
 
 end
 !####################################################################################
