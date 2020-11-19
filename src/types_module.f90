@@ -690,20 +690,14 @@ subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
 !    stop
 !  end if
 
-  nstructall=nstructall+1
-  if (mod(nstructall,1000000).eq.0)  then
-    call system_mem_usage(mem)
-    write(*,*)'nstruct',nstructall,nstruct,'mem',mem
-  end if 
-
-  if (.not.present(md5file) .and. .not. present(duringread)) then
-   if (mod(nstructall,writemark).eq.0)  then
-    write(*,*)'Saving cache'
-    call execute_command_line ("mv cache.bin cache.bin.bak")
-    call writetodisk
-    call execute_command_line ("rm cache.bin.bak")
-   end if
+  if (.not. present(duringread)) then 
+    nstructall=nstructall+1
+    if (mod(nstructall,1000000).eq.0)  then
+      call system_mem_usage(mem)
+      write(*,*)'nstruct',nstructall,nstruct,'mem',mem
+    end if 
   end if
+
 
   
   asmall=0 ! fills outside of neighbornumber with zeroes
@@ -878,6 +872,16 @@ end do
   irepl(idx1)=j
 end if
 
+  if (.not.present(md5file) .and. .not. present(duringread)) then
+   if (mod(nstructall,writemark).eq.0)  then
+    write(*,*)'Saving cache'
+    call execute_command_line ("mv cache.bin cache.bin.bak")
+    call writetodisk
+    call execute_command_line ("rm cache.bin.bak")
+   end if
+  end if
+
+
 !   write(*,'(A,I5)',advance='no')"P ",nat
 !   do i=1,order+1
 !     call printvlinoadv(poly(i))
@@ -922,7 +926,7 @@ implicit none
 !  end if
 
   open(23,file='cache.bin',FORM='UNFORMATTED')
-  write(23)vlongmax
+  write(23)vlongmax,nstructall
 
   do idx1=1,maxtab
     xtmp=x(idx1)
@@ -967,7 +971,7 @@ implicit none
    xlen=0
   write(*,*)'Reading cache.bin'
   open(23,file='cache.bin',FORM='UNFORMATTED')
-  read(23)vlong
+  read(23)vlong,nstructall
   if (vlong.gt.vlongmax) then
     write(*,*)'WARNING!'
     write(*,*)'Size of vlong on file is larger than in the current code'
