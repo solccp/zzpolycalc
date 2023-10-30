@@ -11,7 +11,7 @@ program zhang_polynomial
 !   Polycyclic Aromatic Compounds 26 pp.17-35, 2006
 !
   use types_module
-  use lookup_module_md5
+  use lookup_module_hash
   implicit none
   integer(kint) :: i,nhex,level=0,j,notused
   integer(kint),allocatable,dimension(:,:) :: lista

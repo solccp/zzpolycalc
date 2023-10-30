@@ -5,7 +5,7 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
 ! find resursively the ZZ polynomial for the structure pah
 !
   use types_module
-  use lookup_module_md5
+  use lookup_module_hash
   implicit none
   integer(kint) :: medat,level,path
   type(structure) :: pah

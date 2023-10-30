@@ -603,7 +603,7 @@ end function check_seen
 end module lookup_module_crc
 
 
-module lookup_module_md5
+module lookup_module_hash
 use types_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
@@ -652,7 +652,7 @@ use, intrinsic :: iso_c_binding
 
 
 contains 
-subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
+subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   USE IFPORT ! for rename
   implicit none
   integer(kint),intent(in) :: nat
@@ -670,8 +670,9 @@ subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
   real(8)        :: highscore,score
   character(len=1) :: buf (3*nat*2),buf2
   integer :: i,j,ilen,idx2,idx1,ihighscore
-  integer(C_signed_char) :: md5sum(16)
-  integer(C_signed_char),OPTIONAL :: md5file(16)
+  integer, parameter :: hashsize = 16
+  integer(C_signed_char) :: hashsum(hashsize)
+  integer(C_signed_char),OPTIONAL :: hashseen(hashsize)
   integer(kint),OPTIONAL :: iseen
   integer(int64),OPTIONAL :: lastseen
   logical,OPTIONAL :: duringread
@@ -703,18 +704,18 @@ subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
   
   asmall=0 ! fills outside of neighbornumber with zeroes
 
-  if(.not. present(md5file)) then
+  if(.not. present(hashseen)) then
     do i=1,nat
      do j=1,nbnum(i)
        asmall(j,i)=a(j,i)
      end do
     end do
     buf=transfer(asmall(1:3,1:nat),buf)
-    call MD5(buf,size(buf,1,C_long),md5sum)
+    call MD5(buf,size(buf,1,C_long),hashsum)
   else
-    md5sum=md5file
+    hashsum=hashseen
   end if
-  idx1l=transfer(md5sum,idx1l)
+  idx1l=transfer(hashsum,idx1l)
 
 !  idx1l=crc32_hash(buf)
 !  if (nat.ge.12) then
@@ -760,7 +761,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
 !  xuse(idx1,ilen)=0
    
   do i=1,ilen
-      allocate(ptmp(i)%nlist(16))
+      allocate(ptmp(i)%nlist(hashsize))
       allocate(ptmp(i)%polynomial(x(idx1)%p(i)%order+1))
     
       ptmp(i)%order=x(idx1)%p(i)%order
@@ -776,7 +777,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
   
   allocate(x(idx1)%p(ilen+1))
   do i=1,ilen
-      allocate(x(idx1)%p(i)%nlist(16))
+      allocate(x(idx1)%p(i)%nlist(hashsize))
       allocate(x(idx1)%p(i)%polynomial(ptmp(i)%order+1))
     
       x(idx1)%p(i)%order=ptmp(i)%order
@@ -789,12 +790,12 @@ subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
   end do
   deallocate(ptmp)
 
-  allocate(x(idx1)%p(ilen+1)%nlist(16))
+  allocate(x(idx1)%p(ilen+1)%nlist(hashsize))
   allocate(x(idx1)%p(ilen+1)%polynomial(order+1))
 
 
-  do i=1,16
-      x(idx1)%p(ilen+1)%nlist(i)=md5sum(i)
+  do i=1,hashsize
+      x(idx1)%p(ilen+1)%nlist(i)=hashsum(i)
   end do
   x(idx1)%p(ilen+1)%order=order
   if (.not.present(iseen)) then 
@@ -849,8 +850,8 @@ end do
   j=ihighscore
 !  j=irepl(idx1)
 !  write(*,*)'highscore',j,highscore,xlen(idx1)
-  do i=1,16
-      x(idx1)%p(j)%nlist(i)=md5sum(i)
+  do i=1,hashsize
+      x(idx1)%p(j)%nlist(i)=hashsum(i)
   end do
  
   if (x(idx1)%p(j)%order .ne. order) then
@@ -873,7 +874,7 @@ end do
   irepl(idx1)=j
 end if
 
-  if (.not.present(md5file) .and. .not. present(duringread)) then
+  if (.not.present(hashseen) .and. .not. present(duringread)) then
    if (mod(nstructall,writemark).eq.0)  then
     write(*,*)'Saving cache'
 !    call execute_command_line ("mv cache.bin cache.bin.bak")
@@ -913,10 +914,11 @@ implicit none
   integer(int64) :: ipack,idx2l,idx1l
   real(8)        :: highscore,score
   integer :: i,j,ilen,idx2,idx1,ihighscore
-  integer(C_signed_char) :: md5sum(16)
+  integer, parameter :: hashsize = 16
+  integer(C_signed_char) :: hashsum(hashsize)
   integer(kint) :: leadpowmax=0
-!  call MD5(buf,size(buf,1,C_long),md5sum)
-!  idx1l=transfer(md5sum,idx1l)
+!  call MD5(buf,size(buf,1,C_long),hashsum)
+!  idx1l=transfer(hashsum,idx1l)
 
 !  idx1l=crc32_hash(buf)
 !  if (nat.ge.12) then
@@ -958,7 +960,8 @@ end subroutine writetodisk
 
 subroutine readfromdisk
 implicit none
-  integer(C_signed_char) :: md5sum(16)
+  integer, parameter :: hashsize = 16
+  integer(C_signed_char) :: hashsum(hashsize)
   integer :: vlong,ires
   integer(kint) :: nbnum(maxatoms)
   integer(kint) ::  a(3,maxatoms)
@@ -984,14 +987,14 @@ implicit none
   end if
   ires=0
   do while (ires.eq.0)
-  read(23,IOSTAT=ires)order,iseen,nat,lastseen,md5sum
+  read(23,IOSTAT=ires)order,iseen,nat,lastseen,hashsum
   if (ires.eq.0) then
    allocate(poly(order+1))
    order32=order
    nat32=nat
-!   write(*,*)order,iseen,nat,lastseen,md5sum
+!   write(*,*)order,iseen,nat,lastseen,hashsum
    call readfromfile(23,poly,order32+1)
-   call add_neigh(nat32,nbnum,a,order32,poly,md5sum,iseen,lastseen,.true.)
+   call add_neigh(nat32,nbnum,a,order32,poly,hashsum,iseen,lastseen,.true.)
    deallocate(poly)
   end if
   end do
@@ -1016,7 +1019,8 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   type(ptrneigh), target :: xtmp
   integer(int64) :: idx2l,idx1l
   character(len=1) :: buf (3*nat*2),buf2
-  integer(C_signed_char) :: md5sum(16)
+  integer, parameter :: hashsize = 16
+  integer(C_signed_char) :: hashsum(hashsize)
 
   type(neigh) :: temp
   integer(int64), pointer :: temp2
@@ -1040,8 +1044,8 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
 
   buf=transfer(asmall(1:3,1:nat),buf)
 
-  call MD5(buf,size(buf,1,C_long),md5sum)
-  idx1l=transfer(md5sum,idx1l)
+  call MD5(buf,size(buf,1,C_long),hashsum)
+  idx1l=transfer(hashsum,idx1l)
 
 
 
@@ -1065,11 +1069,11 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   xtmp=x(idx1)
   curr=>xtmp
   structloop:   do i=1,xlen(idx1)
-    do j=1,16
-        if (curr%p(i)%nlist(j).ne. md5sum(j)) then 
+    do j=1,hashsize
+        if (curr%p(i)%nlist(j).ne. hashsum(j)) then 
           cycle structloop
         end if
-      if (j.eq.16) then 
+      if (j.eq.hashsize) then 
         seen=.true.
 !        write(*,*)'match'
         match=>curr%p(i)
@@ -1140,5 +1144,5 @@ return
 end subroutine system_mem_usage
 
 
-end module lookup_module_md5
+end module lookup_module_hash
 
