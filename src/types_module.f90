@@ -7,7 +7,7 @@ use ISO_FORTRAN_ENV
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 50000
-  integer, parameter :: vlongmax = 23
+  integer, parameter :: vlongmax = 27
   integer, parameter :: vbase = 1000000000
   integer, parameter :: maxpolylength = 1000
 
@@ -609,10 +609,10 @@ use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
 !  integer, parameter :: maxtab = 2097152
   integer, parameter :: maxtab = 209715
-  integer, parameter :: highmark =   5000000
-  integer(int64), parameter :: writemark =   50000000
+!  integer, parameter :: highmark =   180 000 000
+  integer(int64), parameter :: writemark =   200000000
 !integer(int64), parameter :: writemark =   1000000
-!  integer, parameter :: highmark =  5000000
+  integer, parameter :: highmark =  12000000
 !  integer, parameter :: maxtab = 100
   integer(int32), parameter :: packshift = 10
   integer(int32), parameter :: packlen = 2**packshift
@@ -653,6 +653,7 @@ use, intrinsic :: iso_c_binding
 
 contains 
 subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
+  USE IFPORT ! for rename
   implicit none
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: nbnum(nat)
@@ -676,7 +677,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,md5file,iseen,lastseen,duringread)
   logical,OPTIONAL :: duringread
 
   logical :: replace
-  integer :: mem
+  integer :: mem,ires
 
 !  if (nat.le.10 ) return
 
@@ -875,9 +876,12 @@ end if
   if (.not.present(md5file) .and. .not. present(duringread)) then
    if (mod(nstructall,writemark).eq.0)  then
     write(*,*)'Saving cache'
-    call execute_command_line ("mv cache.bin cache.bin.bak")
-    call writetodisk
-    call execute_command_line ("rm cache.bin.bak")
+!    call execute_command_line ("mv cache.bin cache.bin.bak")
+     ires=rename('cache.bin','cache.bin.bak')
+     call writetodisk
+!    call execute_command_line ("rm cache.bin.bak")
+     open(unit=23, iostat=ires, file='cache.bin.bak', status='old')
+     if (ires .eq. 0) close(23, status='delete')
    end if
   end if
 
