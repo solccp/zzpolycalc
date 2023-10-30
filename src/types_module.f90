@@ -1,5 +1,19 @@
 !################################ module types_module ###############################
 !####################################################################################
+
+module hash_module
+  integer, parameter :: hashsize =16
+  interface 
+  subroutine hash(dat,size,result) bind(C, name= 'MD5')
+    use, intrinsic :: iso_c_binding
+    integer(C_signed_char) :: result(*)
+    integer(C_long), value :: size
+    character(kind=c_char) :: dat(size)
+  end subroutine hash
+  end interface
+end module hash_module
+
+
 module types_module
 use ISO_FORTRAN_ENV
 
@@ -605,6 +619,7 @@ end module lookup_module_crc
 
 module lookup_module_hash
 use types_module
+use hash_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
 !  integer, parameter :: maxtab = 2097152
@@ -642,18 +657,13 @@ use, intrinsic :: iso_c_binding
     logical,intent(in),optional  :: cont
     character(len=1),intent(in)  :: a(:)
   end function crc32_hash
-    subroutine MD5(dat,size,result) bind(C, name='MD5')
-    use, intrinsic :: iso_c_binding
-    integer(C_signed_char) :: result(*)
-    integer(C_long), value :: size
-    character(kind=c_char) :: dat(size)
-  end subroutine MD5
   end interface
 
 
 contains 
 subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   USE IFPORT ! for rename
+  use hash_module
   implicit none
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: nbnum(nat)
@@ -670,7 +680,6 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   real(8)        :: highscore,score
   character(len=1) :: buf (3*nat*2),buf2
   integer :: i,j,ilen,idx2,idx1,ihighscore
-  integer, parameter :: hashsize = 16
   integer(C_signed_char) :: hashsum(hashsize)
   integer(C_signed_char),OPTIONAL :: hashseen(hashsize)
   integer(kint),OPTIONAL :: iseen
@@ -711,7 +720,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
      end do
     end do
     buf=transfer(asmall(1:3,1:nat),buf)
-    call MD5(buf,size(buf,1,C_long),hashsum)
+    call hash(buf,size(buf,1,C_long),hashsum)
   else
     hashsum=hashseen
   end if
@@ -907,6 +916,7 @@ end subroutine add_neigh
 
 
 subroutine writetodisk
+use hash_module
 implicit none
   type(ptrneigh),pointer :: curr
   type(ptrneigh), target :: xtmp
@@ -914,7 +924,6 @@ implicit none
   integer(int64) :: ipack,idx2l,idx1l
   real(8)        :: highscore,score
   integer :: i,j,ilen,idx2,idx1,ihighscore
-  integer, parameter :: hashsize = 16
   integer(C_signed_char) :: hashsum(hashsize)
   integer(kint) :: leadpowmax=0
 !  call MD5(buf,size(buf,1,C_long),hashsum)
@@ -959,8 +968,8 @@ end subroutine writetodisk
 
 
 subroutine readfromdisk
+use hash_module
 implicit none
-  integer, parameter :: hashsize = 16
   integer(C_signed_char) :: hashsum(hashsize)
   integer :: vlong,ires
   integer(kint) :: nbnum(maxatoms)
@@ -1005,6 +1014,7 @@ end subroutine readfromdisk
 
 
 function check_seen(nat,nbnum,a,order,poly) result(seen)
+  use hash_module
   implicit none
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: nbnum(nat)
@@ -1019,7 +1029,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   type(ptrneigh), target :: xtmp
   integer(int64) :: idx2l,idx1l
   character(len=1) :: buf (3*nat*2),buf2
-  integer, parameter :: hashsize = 16
   integer(C_signed_char) :: hashsum(hashsize)
 
   type(neigh) :: temp
@@ -1044,7 +1053,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
 
   buf=transfer(asmall(1:3,1:nat),buf)
 
-  call MD5(buf,size(buf,1,C_long),hashsum)
+  call hash(buf,size(buf,1,C_long),hashsum)
   idx1l=transfer(hashsum,idx1l)
 
 
