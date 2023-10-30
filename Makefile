@@ -12,7 +12,8 @@ CC := icc
 #FFLAGS := -g -debug -trace -ipo -O3 -funroll-loops -no-prec-div -module ${MODDIR} 
 #FFLAGS :=-ipo  -Ofast  -axSSE4.2,AVX,CORE-AVX2 -module ${MODDIR} 
 #FFLAGS :=-ipo  -Ofast  -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -no-prec-div -module ${MODDIR} 
-FFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
+#FFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
+FFLAGS := -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
 #FFLAGS :=-profile-functions -profile-loops=all -profile-loops-report=2 -Ofast  -axSSE4.2,AVX,CORE-AVX2 -module ${MODDIR} 
 
 
@@ -22,7 +23,9 @@ FFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX
 
 #CFLAGS = -ipo -O3 -funroll-loops -no-prec-div
 #CFLAGS :=-ipo  -Ofast -axSSE4.2,AVX,CORE-AVX2 
-CFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2
+#CFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2
+CFLAGS := -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2
+
 #CFLAGS :=-profile-functions -profile-loops=all -profile-loops-report=2 -Ofast -axSSE4.2,AVX,CORE-AVX2 
 #CFLAGS := -g3 -O0 
 #-debug -trace -check=stack,uninit -debug all
