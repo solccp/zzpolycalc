@@ -2,7 +2,7 @@
 !####################################################################################
 
 module hash_module
-  integer, parameter :: hashsize =16
+  integer, parameter :: hashsize = 16
   interface 
   subroutine hash(dat,size,result) bind(C, name= 'MD5')
     use, intrinsic :: iso_c_binding
@@ -422,9 +422,10 @@ use ISO_FORTRAN_ENV
 
 
 contains 
-subroutine add_neigh(nat,a,order,poly)
+subroutine add_neigh(nat,nbnum,a,order,poly)
   implicit none
   integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: nbnum(nat) ! not used for compatibility with hash
   integer(kint), intent(in) :: a(3,nat)
   integer(kint), intent(in) :: order
   type(vlonginteger), intent(in) :: poly(order+1)
@@ -547,9 +548,10 @@ subroutine add_neigh(nat,a,order,poly)
 
 end subroutine add_neigh
 
-function check_seen(nat,a,order,poly) result(seen)
+function check_seen(nat,a,nbnum,order,poly) result(seen)
   implicit none
   integer(kint),intent(in) :: nat
+  integer(kint), intent(in) :: nbnum(nat) ! not used for compatibility with hash
   integer(kint), intent(in) :: a(3,nat)
   integer(kint), intent(out) :: order
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
