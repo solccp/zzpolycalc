@@ -37,7 +37,7 @@ LDFLAGS := -static  -lpthread -qopenmp
 
 COMMON_FILES := types_module
 ZHANG_FILES := crc zhang input functions daughters findZZ polynomial decompose operators print hexagon schlegel
-C_FILES := md5
+C_FILES := md5 xxhashwrapper
 
 COMMON_SRCS := $(addsuffix .F90, ${COMMON_FILES})
 COMMON_SRCS := $(addprefix ${SRCDIR}, ${COMMON_SRCS})
@@ -80,7 +80,7 @@ mrproper: clean
 
 ${BINDIR}zhangadjtmp: ${ZHANG_OBJS} ${COMMON_OBJS} ${C_OBJS}
 	@echo [LD] $@
-	@${FC} ${LDFLAGS} -o $@ $^
+	@${FC} ${LDFLAGS} -o $@ $^  -L ~/ZZ/xxHash/ -l xxhash
 
 ${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.f90
 	@echo [FC] $<
@@ -93,7 +93,7 @@ ${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.F90
 
 ${OBJDIR}%.o :${SRCDIR}%.c
 	@echo [CC] $<
-	@${CC} ${CFLAGS} -c -o $@ $<
+	@${CC} ${CFLAGS} -c -o $@ $< -I ~/ZZ/xxHash
 
 
 include .depend

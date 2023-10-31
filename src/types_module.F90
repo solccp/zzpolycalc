@@ -4,7 +4,7 @@
 module hash_module
   integer, parameter :: hashsize = 16
   interface 
-  subroutine hash(dat,size,result) bind(C, name= 'MD5')
+  subroutine hash(dat,size,result) bind(C, name= 'xxhash')
     use, intrinsic :: iso_c_binding
     integer(C_signed_char) :: result(*)
     integer(C_long), value :: size
