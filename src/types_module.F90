@@ -664,7 +664,7 @@ use, intrinsic :: iso_c_binding
 
 contains 
 subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
-  USE IFPORT ! for rename
+!  USE IFPORT ! for rename
   use hash_module
   implicit none
   integer(kint),intent(in) :: nat
@@ -888,8 +888,8 @@ end if
   if (.not.present(hashseen) .and. .not. present(duringread)) then
    if (mod(nstructall,writemark).eq.0)  then
     write(*,*)'Saving cache'
-!    call execute_command_line ("mv cache.bin cache.bin.bak")
-     ires=rename('cache.bin','cache.bin.bak')
+    call execute_command_line ("mv cache.bin cache.bin.bak")
+!     ires=rename('cache.bin','cache.bin.bak')
      call writetodisk
 !    call execute_command_line ("rm cache.bin.bak")
      open(unit=23, iostat=ires, file='cache.bin.bak', status='old')
@@ -1114,7 +1114,10 @@ end function check_seen
 
 !from stackexchange
 subroutine system_mem_usage(valueRSS)
+#ifdef __INTEL_COMPILER
 use ifport !if on intel compiler
+#endif
+
 implicit none
 integer, intent(out) :: valueRSS
 

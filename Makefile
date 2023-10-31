@@ -39,7 +39,7 @@ COMMON_FILES := types_module
 ZHANG_FILES := crc zhang input functions daughters findZZ polynomial decompose operators print hexagon schlegel
 C_FILES := md5
 
-COMMON_SRCS := $(addsuffix .f90, ${COMMON_FILES})
+COMMON_SRCS := $(addsuffix .F90, ${COMMON_FILES})
 COMMON_SRCS := $(addprefix ${SRCDIR}, ${COMMON_SRCS})
 
 COMMON_OBJS := $(addsuffix .o, ${COMMON_FILES})
@@ -85,6 +85,11 @@ ${BINDIR}zhangadjtmp: ${ZHANG_OBJS} ${COMMON_OBJS} ${C_OBJS}
 ${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.f90
 	@echo [FC] $<
 	@${FC} ${FFLAGS} -c -o $@ $<
+
+${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.F90
+	@echo [FC] $<
+	@${FC} ${FFLAGS} -c -o $@ $<
+
 
 ${OBJDIR}%.o :${SRCDIR}%.c
 	@echo [CC] $<
