@@ -18,6 +18,17 @@ program zhang_polynomial
   type(structure) :: pah
   logical :: cacheexists
 
+#ifdef USE_XXHASH
+  write(*,*),'xxhash used'
+#else
+#ifdef USE_SHA256
+  write(*,*),'SHA256 used'
+#else
+  write(*,*),'MD5 used'
+#endif
+#endif
+
+
 ! ############################################################
 ! # read initial geometry data and create topological matrix #
 ! ############################################################

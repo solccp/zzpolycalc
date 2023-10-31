@@ -35,8 +35,8 @@ LDFLAGS := -static  -lpthread -qopenmp
 # -debug all
 #LDFLAGS := -static -lmkl_em64t -lguide -lpthread
 
-COMMON_FILES := types_module
-ZHANG_FILES := crc zhang input functions daughters findZZ polynomial decompose operators print hexagon schlegel
+COMMON_FILES := types_module zhang
+ZHANG_FILES := crc input functions daughters findZZ polynomial decompose operators print hexagon schlegel
 C_FILES := md5 xxhashwrapper
 
 COMMON_SRCS := $(addsuffix .F90, ${COMMON_FILES})
@@ -88,7 +88,7 @@ ${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.f90
 
 ${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.F90
 	@echo [FC] $<
-	@${FC} ${FFLAGS} -c -o $@ $<
+	@${FC} ${FFLAGS} -c -o $@ $< -DUSE_XXHASH
 
 
 ${OBJDIR}%.o :${SRCDIR}%.c

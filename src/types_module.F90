@@ -2,9 +2,21 @@
 !####################################################################################
 
 module hash_module
+#ifdef USE_SHA256
+  integer, parameter :: hashsize = 32
+#else
   integer, parameter :: hashsize = 16
+#endif
   interface 
+#ifdef USE_XXHASH
   subroutine hash(dat,size,result) bind(C, name= 'xxhash')
+#else
+#ifdef USE_SHA256
+  subroutine hash(dat,size,result) bind(C, name= 'SHA256')
+#else
+  subroutine hash(dat,size,result) bind(C, name= 'MD5')
+#endif
+#endif
     use, intrinsic :: iso_c_binding
     integer(C_signed_char) :: result(*)
     integer(C_long), value :: size
