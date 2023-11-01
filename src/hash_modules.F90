@@ -41,8 +41,6 @@ use, intrinsic :: iso_c_binding
 !integer(int64), parameter :: writemark =   1000000
   integer, parameter :: highmark =  12000000
 !  integer, parameter :: maxtab = 100
-  integer(int32), parameter :: packshift = 10
-  integer(int32), parameter :: packlen = 2**packshift
   logical :: firstrun = .true.
   integer(int64) :: nstruct = 0
   integer(int64) :: nstructall = 0
@@ -63,12 +61,6 @@ use, intrinsic :: iso_c_binding
   integer(kint),allocatable :: xlen(:)
   integer(kint),allocatable :: irepl(:)
   interface
-  function crc32_hash(a,cont) result(crc64)
-    use,intrinsic :: ISO_FORTRAN_ENV, only : int32,int64
-    integer(int64)               :: crc64
-    logical,intent(in),optional  :: cont
-    character(len=1),intent(in)  :: a(:)
-  end function crc32_hash
   end interface
 
 
@@ -137,17 +129,6 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
     hashsum=hashseen
   end if
   idx1l=transfer(hashsum,idx1l)
-
-!  idx1l=crc32_hash(buf)
-!  if (nat.ge.12) then
-!    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
-!    idx1l=idx1l+crc32_hash(buf)
-!  end if
-
-! if (nat.ge.18) then
-!    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
-!    idx1l=idx1l+crc32_hash(buf)
-!  end if
 
   idx1=mod(idx1l,maxtab)
   idx1=iabs(idx1)+1
@@ -338,19 +319,6 @@ implicit none
   integer :: i,j,ilen,idx2,idx1,ihighscore
   integer(C_signed_char) :: hashsum(hashsize)
   integer(kint) :: leadpowmax=0
-!  call MD5(buf,size(buf,1,C_long),hashsum)
-!  idx1l=transfer(hashsum,idx1l)
-
-!  idx1l=crc32_hash(buf)
-!  if (nat.ge.12) then
-!    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
-!    idx1l=idx1l+crc32_hash(buf)
-!  end if
-
-! if (nat.ge.18) then
-!    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
-!    idx1l=idx1l+crc32_hash(buf)
-!  end if
 
   open(23,file='cache.bin',FORM='UNFORMATTED')
   write(23)vlongmax,nstructall
@@ -468,17 +436,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   call hash(buf,size(buf,1,C_long),hashsum)
   idx1l=transfer(hashsum,idx1l)
 
-
-
-!  idx1l=crc32_hash(buf)
-!  if (nat.ge.12) then
-!    buf=transfer(a(1:3,nat/2:nat/2+6),buf)
-!    idx1l=idx1l+crc32_hash(buf)
-!  end if
-!  if (nat.ge.18) then
-!    buf=transfer(a(1:3,2*nat/3:2*nat/3+6),buf)
-!    idx1l=idx1l+crc32_hash(buf)
-!  end if
 
 
   idx1=mod(idx1l,maxtab)

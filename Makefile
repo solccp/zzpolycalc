@@ -36,7 +36,7 @@ LDFLAGS := -static  -lpthread -qopenmp
 #LDFLAGS := -static -lmkl_em64t -lguide -lpthread
 
 COMMON_FILES := types_module zhang hash_modules
-ZHANG_FILES := crc input functions daughters findZZ polynomial decompose operators print hexagon schlegel
+ZHANG_FILES := input functions daughters findZZ polynomial decompose operators print hexagon schlegel
 C_FILES := md5 xxhashwrapper
 
 COMMON_SRCS := $(addsuffix .F90, ${COMMON_FILES})
