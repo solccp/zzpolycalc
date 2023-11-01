@@ -226,7 +226,7 @@ contains
   do i=1,n
 !    write(*,*)i,a(j)%leadpow
     if (a(i)%leadpow.gt. vlongmax) then
-      print*,"overflow in readfromfile, enlarge size of tabl"
+      print*,"overflow in readfromfile, enlarge size of vlongmax"
       stop
     end if
   end do

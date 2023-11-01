@@ -34,13 +34,13 @@ use types_module
 use hash_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
-!  integer, parameter :: maxtab = 2097152
-  integer, parameter :: maxtab = 209715
-!  integer, parameter :: highmark =   180 000 000
+!  integer, parameter :: nbuckets = 2097152
+  integer, parameter :: nbuckets = 209715
+!  integer, parameter :: maxrecords =   180 000 000
   integer(int64), parameter :: writemark =   200000000
 !integer(int64), parameter :: writemark =   1000000
-  integer, parameter :: highmark =  12000000
-!  integer, parameter :: maxtab = 100
+  integer, parameter :: maxrecords =  12000000
+!  integer, parameter :: nbuckets = 100
   logical :: firstrun = .true.
   integer(int64) :: nstruct = 0
   integer(int64) :: nstructall = 0
@@ -130,7 +130,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   end if
   idx1l=transfer(hashsum,idx1l)
 
-  idx1=mod(idx1l,maxtab)
+  idx1=mod(idx1l,nbuckets)
   idx1=iabs(idx1)+1
 
 
@@ -148,7 +148,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   end if
   
   ilen=xlen(idx1)
-  if (nstruct.gt.highmark .and. .not. first) then
+  if (nstruct.gt.maxrecords .and. .not. first) then
     replace=.true.
   else
     replace=.false.
@@ -231,7 +231,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 !  x(idx1)%p=>ptmp
   xlen(idx1)=xlen(idx1)+1
   nstruct=nstruct+1
-  if (nstruct.eq.highmark) write(*,*)'High mark',nstruct,' achieved' 
+  if (nstruct.eq.maxrecords) write(*,*)'Max records',nstruct,' achieved' 
 else ! replace
 
 ! find best candidate to replace
@@ -323,7 +323,7 @@ implicit none
   open(23,file='cache.bin',FORM='UNFORMATTED')
   write(23)vlongmax,nstructall
 
-  do idx1=1,maxtab
+  do idx1=1,nbuckets
     xtmp=x(idx1)
     curr=>xtmp
     if (associated(curr%p)) then 
@@ -362,7 +362,7 @@ implicit none
      integer(int64) :: lastseen
      type(vlonginteger),allocatable :: poly(:)
 
-   allocate(x(maxtab),xlen(maxtab),irepl(maxtab))
+   allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
    firstrun=.false.
    xlen=0
   write(*,*)'Reading cache.bin'
@@ -416,7 +416,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
 
 
   if (firstrun) then
-    allocate(x(maxtab),xlen(maxtab),irepl(maxtab))
+    allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
 !    write(*,*)sizeof(x),sizeof(xlen),sizeof(curr),sizeof(temp),sizeof(temp2)
     firstrun=.false.
     xlen=0
@@ -438,7 +438,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
 
 
 
-  idx1=mod(idx1l,maxtab)
+  idx1=mod(idx1l,nbuckets)
   idx1=iabs(idx1)+1
 
 
