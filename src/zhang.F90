@@ -19,12 +19,12 @@ program zhang_polynomial
   logical :: cacheexists
 
 #ifdef USE_XXHASH
-  write(*,*),'xxhash used'
+  write(*,*)'xxhash used'
 #else
 #ifdef USE_SHA256
-  write(*,*),'SHA256 used'
+  write(*,*)'SHA256 used'
 #else
-  write(*,*),'MD5 used'
+  write(*,*)'MD5 used'
 #endif
 #endif
 

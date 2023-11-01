@@ -115,7 +115,7 @@ subroutine read_input(pah)
 
   
   do i=1,cnat
-    write(22,'(4(I5,2x))'),i,(pah%neighborlist(k,i),k=1,3)
+    write(22,'(4(I5,2x))')i,(pah%neighborlist(k,i),k=1,3)
   end do
 
   close(22)
