@@ -12,6 +12,7 @@ program zhang_polynomial
 !
   use types_module
   use lookup_module_hash
+  use options_module
   implicit none
   integer(kint) :: i,nhex,level=0,j,notused
   integer(kint),allocatable,dimension(:,:) :: lista
@@ -34,6 +35,7 @@ program zhang_polynomial
 ! ############################################################
   call read_input(pah)
 
+  call initialize_options() ! after read_input becuse some defaults would depend on the size of the molecule
 ! read cache from disk 
   inquire(file='cache.bin',exist=cacheexists)
   if (cacheexists) then

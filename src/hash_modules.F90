@@ -32,15 +32,9 @@ end module hash_module
 module lookup_module_hash
 use types_module
 use hash_module
+use options_module
 use ISO_FORTRAN_ENV
 use, intrinsic :: iso_c_binding
-!  integer, parameter :: nbuckets = 2097152
-  integer, parameter :: nbuckets = 209715
-!  integer, parameter :: maxrecords =   180 000 000
-  integer(int64), parameter :: writemark =   200000000
-!integer(int64), parameter :: writemark =   1000000
-  integer, parameter :: maxrecords =  12000000
-!  integer, parameter :: nbuckets = 100
   logical :: firstrun = .true.
   integer(int64) :: nstruct = 0
   integer(int64) :: nstructall = 0
