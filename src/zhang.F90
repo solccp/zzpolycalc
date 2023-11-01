@@ -51,7 +51,7 @@ program zhang_polynomial
   call print_ZZ_polynomial(pah)
   write(*,*)'Unique',nstruct
   notused=0
-  do i=1,maxtab
+  do i=1,nbuckets
     do j=1,xlen(i)
 !      write(*,*)'iseen',i,j,x(i)%p(j)%iseen
        if (x(i)%p(j)%iseen .gt. 0) notused=notused+1
@@ -59,7 +59,7 @@ program zhang_polynomial
   end do
 
   write(*,*)'Not used:',notused
-  call writetodisk
+!  call writetodisk
 
 end
 !####################################################################################
