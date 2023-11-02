@@ -1,11 +1,12 @@
 !############################ subroutine read_input #################################
 !####################################################################################
-subroutine read_input(pah)
+subroutine read_input(input_fname,pah)
 !
 ! read the geometry of a polycyclic benzenoid structure pah from the file 'geometry',
 ! filter out only the carbon atoms, and create the topological matrix for it
 !
   use types_module
+  use options_module
   implicit none
   integer(kind=4) :: info
   integer(kint) :: cnat=0,status,bnat,i,j,k,nhex,l,m,errorcode,a1,a2
@@ -18,20 +19,20 @@ subroutine read_input(pah)
   integer(kint),allocatable,dimension(:) :: map
   real(kreal),dimension(3) :: x
   real(kreal) :: dist
-  type(structure) :: pah
+  type(structure), intent(inout) :: pah
   logical :: inlist,bondfileexists,adjexists
 
-  inquire(file='adjlist',exist=adjexists)
-  if (adjexists) then
-    open(20,file='adjlist')
+   character(len=*), intent(in) :: input_fname
+
+
+  if (is_adjacencyfile) then
+    open(20,file=trim(input_fname),status='old')
     read(20,*)cnat
   else 
-  
-
 ! ######################
 ! # read geometry file #
 ! ######################
-    open(20,file='geometry')
+    open(20,file=trim(input_fname),status='old')
     read(20,*)bnat
     read(20,*)
     allocate(geom(3,bnat))
@@ -70,7 +71,7 @@ subroutine read_input(pah)
   allocate(pah%neighborlist(3,pah%nat))
   pah%neighbornumber=0
 
-  if (adjexists) then
+  if (is_adjacencyfile) then
     do i=1,cnat-1
       read(20,*)atname,(pah%neighborlist(k,i),k=1,3)
       pah%neighbornumber(i)=3
@@ -120,7 +121,7 @@ subroutine read_input(pah)
 
   close(22)
 
-  if (.not. adjexists) then
+  if (.not. is_adjacencyfile) then
 ! ################################################
 ! # construct Schlegel diagram for the fullerene #
 ! ################################################

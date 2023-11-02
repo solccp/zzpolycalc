@@ -60,20 +60,35 @@ contains
         return
     end function
 
-subroutine read_options()
-use options_module
-implicit none
-character :: okey
+subroutine read_options(input_fname)
+  use options_module
+  implicit none
+  character :: okey
+  integer :: argc
+  character(len=*), intent(out) :: input_fname
+
+    argc = command_argument_count()
+
+    if (argc < 1) then
+        call print_usage()
+        stop
+    end if
 
 
     do
-        okey = getopt('h')
+        okey = getopt('ha')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
             stop
         end if
+        if(okey == 'a') then
+            is_adjacencyfile = .true.
+        end if
 
+        if(okey == '.') then
+            input_fname = optarg
+        end if
 
         if (okey == 'h') then
             call print_usage()
@@ -86,6 +101,7 @@ end subroutine read_options
 subroutine print_usage()
     write(*, '(1x,a)') "Usage: ZZPolyCalc [options] input"
     write(*, '(1x,a)') "Options:"
+    write(*, '(1x,10a)') "    ", "-a", "                ",  "Input file specifies adjacency instead of Cartesian geometry"
     write(*, '(1x,10a)') "    ", "-h", "                ",  "Show this message"
 end subroutine
 

@@ -19,6 +19,8 @@ program zhang_polynomial
   integer(kint),allocatable,dimension(:,:) :: lista
   type(structure) :: pah
   logical :: cacheexists
+  character(len=200) :: input_fname
+
 
 #ifdef USE_XXHASH
   write(*,*)'xxhash used'
@@ -34,11 +36,12 @@ program zhang_polynomial
 ! ############################################################
 ! # read initial geometry data and create topological matrix #
 ! ############################################################
-  call read_input(pah)
 
-  call initialize_options() ! after read_input becuse some defaults would depend on the size of the molecule
+  call initialize_options() 
+  call read_options(input_fname)
+  call read_input(input_fname,pah)
+
   
-  call read_options()
   
 ! read cache from disk 
   inquire(file='cache.bin',exist=cacheexists)
