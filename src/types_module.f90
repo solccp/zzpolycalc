@@ -8,7 +8,7 @@ use ISO_FORTRAN_ENV
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 50000
-  integer, parameter :: vlongmax = 27
+  integer, parameter :: vlongmax = 14
   integer, parameter :: vbase = 1000000000
   integer, parameter :: maxpolylength = 1000
 

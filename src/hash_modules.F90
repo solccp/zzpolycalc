@@ -38,6 +38,7 @@ use, intrinsic :: iso_c_binding
   logical :: firstrun = .true.
   integer(int64) :: nstruct = 0
   integer(int64) :: nstructall = 0
+  integer(int64) :: nstructseen = 0
   type,public :: neigh
      integer(C_signed_char), pointer :: nlist(:)     
      integer(int16) :: order
@@ -62,6 +63,7 @@ contains
 subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 !  USE IFPORT ! for rename
   use hash_module
+  use options_module
   implicit none
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: nbnum(nat)
@@ -99,7 +101,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 !    stop
 !  end if
 
-  if (.not. present(duringread)) then 
+  if (.not. present(duringread)) then ! only print in main calculation not when reading cache.bin
     nstructall=nstructall+1
     if (mod(nstructall,1000000).eq.0)  then
       call system_mem_usage(mem)
@@ -272,13 +274,15 @@ end if
 
   if (.not.present(hashseen) .and. .not. present(duringread)) then
    if (mod(nstructall,writemark).eq.0)  then
-    write(*,*)'Saving cache'
-    call execute_command_line ("mv cache.bin cache.bin.bak")
+    if (has_write_cache_file) then   
+      write(*,*)'Saving cache',write_cache_fname
+!    call execute_command_line ("mv cache.bin cache.bin.bak")
 !     ires=rename('cache.bin','cache.bin.bak')
-     call writetodisk
+      call writetodisk(write_cache_fname)
 !    call execute_command_line ("rm cache.bin.bak")
-     open(unit=23, iostat=ires, file='cache.bin.bak', status='old')
-     if (ires .eq. 0) close(23, status='delete')
+!     open(unit=23, iostat=ires, file='cache.bin.bak', status='old')
+!     if (ires .eq. 0) close(23, status='delete')
+    end if 
    end if
   end if
 
@@ -302,7 +306,7 @@ end if
 end subroutine add_neigh
 
 
-subroutine writetodisk
+subroutine writetodisk(fname)
 use hash_module
 implicit none
   type(ptrneigh),pointer :: curr
@@ -313,9 +317,13 @@ implicit none
   integer :: i,j,ilen,idx2,idx1,ihighscore
   integer(C_signed_char) :: hashsum(hashsize)
   integer(kint) :: leadpowmax=0
+  character(len=*), intent(in) :: fname
 
-  open(23,file='cache.bin',FORM='UNFORMATTED')
+  open(23,file=fname,FORM='UNFORMATTED')
   write(23)vlongmax,nstructall
+  open(24,file='cache.txt',FORM='FORMATTED')
+  write(23)vlongmax,nstructall
+
 
   do idx1=1,nbuckets
     xtmp=x(idx1)
@@ -329,6 +337,7 @@ implicit none
     end if
     do i=1,ilen
       write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,x(idx1)%p(i)%nlist
+      write(24,*)x(idx1)%p(i)%nat,x(idx1)%p(i)%iseen,x(idx1)%p(i)%order
       call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
       do j=1,x(idx1)%p(i)%order+1
         if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
@@ -338,10 +347,11 @@ implicit none
   end do
   write(*,*)'Max large integer size: ',leadpowmax
   close(23)
+  close(24)
 end subroutine writetodisk
 
 
-subroutine readfromdisk
+subroutine readfromdisk(fname)
 use hash_module
 implicit none
   integer(C_signed_char) :: hashsum(hashsize)
@@ -355,12 +365,13 @@ implicit none
      integer(kint) :: iseen
      integer(int64) :: lastseen
      type(vlonginteger),allocatable :: poly(:)
+  character(len=*), intent(in) :: fname
 
    allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
    firstrun=.false.
    xlen=0
-  write(*,*)'Reading cache.bin'
-  open(23,file='cache.bin',FORM='UNFORMATTED')
+  write(*,*)'Reading cache', fname
+  open(23,file=fname,FORM='UNFORMATTED')
   read(23)vlong,nstructall
   if (vlong.gt.vlongmax) then
     write(*,*)'WARNING!'
@@ -382,7 +393,7 @@ implicit none
   end if
   end do
   close(23)  
-  write(*,*)'cache.bin processed'
+  write(*,*)'cache processed'
 
 end subroutine readfromdisk
 
@@ -408,6 +419,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   type(neigh) :: temp
   integer(int64), pointer :: temp2
 
+  nstructseen = nstructseen + 1
 
   if (firstrun) then
     allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
@@ -417,7 +429,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   end if
 
 !  if (nat.le.10 ) return
-
+  
   asmall=0 ! fills outside of neighbornumber with zeroes
   do i=1,nat
    do j=1,nbnum(i)

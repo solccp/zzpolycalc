@@ -76,7 +76,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('hap')
+        okey = getopt('ham:pr:s:w:')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -85,8 +85,26 @@ subroutine read_options(input_fname)
         if(okey == 'a') then
             is_adjacencyfile = .true.
         end if
+        if(okey == 'm') then
+            read(optarg, *) maxrecords
+        end if
+
         if(okey == 'p') then
             print_bondlevel = .true.
+        end if
+
+        if(okey == 'r') then
+            read(optarg, '(a)') read_cache_fname
+            has_read_cache_file = .true. 
+        end if
+
+        if(okey == 's') then
+            read(optarg, *) nbuckets
+        end if
+
+        if(okey == 'w') then
+            read(optarg, '(a)') write_cache_fname
+            has_write_cache_file = .true. 
         end if
 
 
@@ -106,7 +124,11 @@ subroutine print_usage()
     write(*, '(1x,a)') "Usage: ZZPolyCalc [options] input"
     write(*, '(1x,a)') "Options:"
     write(*, '(1x,10a)') "    ", "-a", "                ",  "Input file specifies adjacency instead of Cartesian geometry"
+    write(*, '(1x,10a)') "    ", "-m number", "         ",  "Maximum {number} of structures in cache database"
     write(*, '(1x,10a)') "    ", "-p", "                ",  "Print intermediate bondlevel structures"
+    write(*, '(1x,10a)') "    ", "-r file", "           ",  "Read cached structures from {file}"
+    write(*, '(1x,10a)') "    ", "-s number", "         ",  "Use {number} of buckets in cache database"
+    write(*, '(1x,10a)') "    ", "-w file", "           ",  "Write cached structures to {file}"
     write(*, '(1x,10a)') "    ", "-h", "                ",  "Show this message"
 end subroutine
 

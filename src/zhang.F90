@@ -44,9 +44,14 @@ program zhang_polynomial
   
   
 ! read cache from disk 
-  inquire(file='cache.bin',exist=cacheexists)
-  if (cacheexists) then
-    call readfromdisk
+  if (has_read_cache_file) then 
+    inquire(file=read_cache_fname,exist=cacheexists)
+    if (cacheexists) then
+      call readfromdisk(read_cache_fname)
+    else
+      write(*,*)'Cache file',read_cache_fname,'does not exist'
+      stop
+    end if
   end if
 
 ! #############################################################
@@ -58,7 +63,7 @@ program zhang_polynomial
 ! # print the ZZ polynomial #
 ! ###########################
   call print_ZZ_polynomial(pah)
-  write(*,*)'Unique',nstruct
+  write(*,*)'Seen Unique Remembered',nstructseen,nstructall,nstruct
   notused=0
   do i=1,nbuckets
     do j=1,xlen(i)
@@ -68,8 +73,9 @@ program zhang_polynomial
   end do
 
   write(*,*)'Not used:',notused
-!  call writetodisk
-
+  if (has_write_cache_file) then
+    call writetodisk(write_cache_fname)
+  end if
 end
 !####################################################################################
 !###################### end of program zhang_polynomial #############################

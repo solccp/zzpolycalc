@@ -52,7 +52,6 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
 
     seen=check_seen(pah%nat,pah%neighbornumber,pah%neighborlist,pah%order,pah%polynomial)
 !    write(*,*)seen
- 
 
     if (.not. seen) then
       call decompose(pah,level,path)
