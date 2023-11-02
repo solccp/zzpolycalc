@@ -9,6 +9,8 @@ recursive subroutine decompose(pah,level,path)
 ! 
 ! path denotes the path taken with bond=0
   use types_module
+  use options_module
+  
   implicit none
   integer(kint) :: atom1,atom2,atom3,i,level,nelim,j,path
   integer(kint),dimension(6) :: sextet1,sextet2
@@ -79,7 +81,7 @@ recursive subroutine decompose(pah,level,path)
 
   call find_ZZ_polynomial(bond,level+1,path) ! this way path==0 denotes pure bond cutting path
 
-  if (path.eq.0) then 
+  if (path.eq.0 .and. print_bondlevel) then 
     write(*,'(A,I4)',advance='no')'bondlevel: ',level+1
     call print_ZZ_polynomial(bond)
   end if

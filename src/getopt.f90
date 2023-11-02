@@ -76,7 +76,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('ha')
+        okey = getopt('hap')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -85,6 +85,10 @@ subroutine read_options(input_fname)
         if(okey == 'a') then
             is_adjacencyfile = .true.
         end if
+        if(okey == 'p') then
+            print_bondlevel = .true.
+        end if
+
 
         if(okey == '.') then
             input_fname = optarg
@@ -102,6 +106,7 @@ subroutine print_usage()
     write(*, '(1x,a)') "Usage: ZZPolyCalc [options] input"
     write(*, '(1x,a)') "Options:"
     write(*, '(1x,10a)') "    ", "-a", "                ",  "Input file specifies adjacency instead of Cartesian geometry"
+    write(*, '(1x,10a)') "    ", "-p", "                ",  "Print intermediate bondlevel structures"
     write(*, '(1x,10a)') "    ", "-h", "                ",  "Show this message"
 end subroutine
 
