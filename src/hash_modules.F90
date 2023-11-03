@@ -89,18 +89,6 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   logical :: replace
   integer :: mem,ires
 
-!  if (nat.le.10 ) return
-
-!  if (nat>packlen) then 
-!  print*,"overflow in packlen"
-!    stop
-!  end if
-
-!  if (nat>maxat) then 
-!  print*,"overflow in maxat"
-!    stop
-!  end if
-
   if (.not. present(duringread)) then ! only print in main calculation not when reading cache.bin
     nstructall=nstructall+1
     if (mod(nstructall,1000000).eq.0)  then
@@ -134,13 +122,10 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
   
 
-!  curr=>xtmp
-!  if (allocated(x(idx1)%p)) then
   if (xlen(idx1)>0) then ! xlen is zeroed at init of check_seen
      first=.false.
   else
      first=.true.
-!     xlen(idx1)=0
      irepl(idx1)=1
   end if
   
@@ -153,11 +138,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
   if (.not. replace) then
 
-!  write(*,*)nat,ilen
    if (ilen>0) allocate(ptmp(ilen))
-
-!   write(*,*)ilen,sizeof(ptmp)
-!  xuse(idx1,ilen)=0
    
   do i=1,ilen
       allocate(ptmp(i)%nlist(hashsize))
@@ -212,20 +193,6 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
     call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
   end do
 
-!  do i=1,ilen
-!    write(*,*)'Dealloc nlist',i,%loc(x(nat)%p(i)%nlist),%loc(x(nat)%p(i)),%loc(ptmp(i)%nlist),%loc(ptmp(i))
-!    deallocate(x(nat)%p(i)%nlist)
-!    write(*,*)'Dealloc polynomial',i
-!    deallocate(x(nat)%p(i)%polynomial)
-!  end do
-
- ! if (.not.first)  then 
-!     write(*,*)'Dealloc x(nat)%p ptmp',%loc(x(nat)%p),%loc(ptmp)
-!    deallocate(x(idx1)%p)
-!  end if
-  
-!  write(*,*)'ptmp',%loc(ptmp)
-!  x(idx1)%p=>ptmp
   xlen(idx1)=xlen(idx1)+1
   nstruct=nstruct+1
   if (nstruct.eq.maxrecords) write(*,*)'Max records',nstruct,' achieved' 
@@ -239,7 +206,6 @@ do j=1,xlen(idx1)
   score=nstructall-x(idx1)%p(j)%lastseen
   score=score/(x(idx1)%p(j)%iseen+1)
   score=score/(x(idx1)%p(j)%nat**2) 
-!  score=score/(x(idx1)%p(j)%nat) 
 !  write(*,*)'score',j,score,x(idx1)%p(j)%lastseen,x(idx1)%p(j)%iseen
   if (score.gt.highscore .or. j.eq.1) then
      highscore=score
@@ -247,8 +213,6 @@ do j=1,xlen(idx1)
   end if
 end do
   j=ihighscore
-!  j=irepl(idx1)
-!  write(*,*)'highscore',j,highscore,xlen(idx1)
   do i=1,hashsize
       x(idx1)%p(j)%nlist(i)=hashsum(i)
   end do
@@ -286,23 +250,6 @@ end if
     end if 
    end if
   end if
-
-
-!   write(*,'(A,I5)',advance='no')"P ",nat
-!   do i=1,order+1
-!     call printvlinoadv(poly(i))
-!   end do
-!   write(*,*)
-
-
-
-!  write(*,*)nat,curr%p%order,%loc(curr),%loc(x(nat)%next),%loc(x(nat)%p)
-!  write(*,*)nstruct
-!   write(*,'(A,I7)',advance='no')"X ",nat
-!   do i=1,nat
-!     write(*,'(3I5)', advance='no')(asmall(j,i),j=1,3)
-!   end do
-!   write(*,*)
 
 end subroutine add_neigh
 
@@ -342,7 +289,6 @@ implicit none
       call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
       do j=1,x(idx1)%p(i)%order+1
         if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
-!        write(*,*)leadpowmax,j,x(idx1)%p(i)%order
       end do
     end do
   end do
@@ -424,12 +370,10 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
 
   if (firstrun) then
     allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
-!    write(*,*)sizeof(x),sizeof(xlen),sizeof(curr),sizeof(temp),sizeof(temp2)
     firstrun=.false.
     xlen=0
   end if
 
-!  if (nat.le.10 ) return
   
   asmall=0 ! fills outside of neighbornumber with zeroes
   do i=1,nat
@@ -467,7 +411,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
     end do
  end do structloop
  if (seen) then 
-!    xuse(idx1,i)=xuse(idx1,i)+1
     order=match%order
     x(idx1)%p(i)%iseen=x(idx1)%p(i)%iseen+1
     x(idx1)%p(i)%lastseen=nstructall
@@ -476,11 +419,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
       call cpvli(match%polynomial(i),poly(i))
     end do
  end if
-!   write(*,'(A,I5,L)',advance='no')"F ",nat,seen   
-!   do i=1,nat
-!     write(*,'(3I4)', advance='no')(a(j,i),j=1,3)
-!   end do
-!   write(*,*)
 
 
 end function check_seen
