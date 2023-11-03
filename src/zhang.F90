@@ -62,7 +62,11 @@ program zhang_polynomial
 ! ###########################
 ! # print the ZZ polynomial #
 ! ###########################
-  call print_ZZ_polynomial(pah)
+  if (print_XML) then
+    call print_ZZ_polynomial_XML(pah)
+  else
+    call print_ZZ_polynomial(pah)
+  endif
   write(*,*)'Seen Unique Remembered',nstructseen,nstructall,nstruct
   notused=0
   do i=1,nbuckets

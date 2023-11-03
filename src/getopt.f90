@@ -76,7 +76,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('ham:pr:s:w:')
+        okey = getopt('ham:pQr:s:w:')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -91,6 +91,10 @@ subroutine read_options(input_fname)
 
         if(okey == 'p') then
             print_bondlevel = .true.
+        end if
+
+        if(okey == 'Q') then
+            print_XML = .true.
         end if
 
         if(okey == 'r') then
@@ -126,6 +130,7 @@ subroutine print_usage()
     write(*, '(1x,10a)') "    ", "-a", "                ",  "Input file specifies adjacency instead of Cartesian geometry"
     write(*, '(1x,10a)') "    ", "-m number", "         ",  "Maximum {number} of structures in cache database"
     write(*, '(1x,10a)') "    ", "-p", "                ",  "Print intermediate bondlevel structures"
+    write(*, '(1x,10a)') "    ", "-Q", "                ",  "Print the ZZ polynomial in XML format"
     write(*, '(1x,10a)') "    ", "-r file", "           ",  "Read cached structures from {file}"
     write(*, '(1x,10a)') "    ", "-s number", "         ",  "Use {number} of buckets in cache database"
     write(*, '(1x,10a)') "    ", "-w file", "           ",  "Write cached structures to {file}"

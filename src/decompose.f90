@@ -82,10 +82,14 @@ recursive subroutine decompose(pah,level,path)
   call find_ZZ_polynomial(bond,level+1,path) ! this way path==0 denotes pure bond cutting path
 
   if (path.eq.0 .and. print_bondlevel) then 
-    write(*,'(A,I4)',advance='no')'bondlevel: ',level+1
-    call print_ZZ_polynomial(bond)
+    if (print_XML) then
+      write(*,'(4x,a,i0,a)') '<bondlevel>', level+1, '</bondlevel>'
+      call print_ZZ_polynomial_XML(bond)
+    else
+      write(*,'(A,I4)',advance='no')'bondlevel: ',level+1
+      call print_ZZ_polynomial(bond)
+    end if
   end if
-
 
 
   call find_ZZ_polynomial(corners,level+1,path+1)

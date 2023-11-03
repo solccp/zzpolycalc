@@ -11,13 +11,15 @@ module options_module
   logical :: has_write_cache_file
   character(len=100) :: write_cache_fname
   logical :: print_bondlevel 
+  logical :: print_XML
 contains
   subroutine initialize_options()
     nbuckets = 2097152
     writemark =   200000000
     maxrecords =  52000000
     is_adjacencyfile = .false.
-    print_bondlevel = .false. 
+    print_bondlevel = .false.
+    print_XML = .false. 
     has_read_cache_file = .false.
     has_write_cache_file = .false. 
   end subroutine
