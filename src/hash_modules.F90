@@ -49,7 +49,7 @@ use, intrinsic :: iso_c_binding
   end type neigh
 
   type ptrneigh
-  type(neigh), pointer :: p(:)
+  type(neigh), allocatable :: p(:)
   end type ptrneigh
 
   type(ptrneigh),allocatable :: x(:)
@@ -134,12 +134,13 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
   
 
-  curr=>xtmp
-  if (associated(curr%p)) then 
+!  curr=>xtmp
+!  if (allocated(x(idx1)%p)) then
+  if (xlen(idx1)>0) then ! xlen is zeroed at init of check_seen
      first=.false.
   else
      first=.true.
-     xlen(idx1)=0
+!     xlen(idx1)=0
      irepl(idx1)=1
   end if
   
@@ -153,7 +154,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   if (.not. replace) then
 
 !  write(*,*)nat,ilen
-  allocate(ptmp(ilen))
+   if (ilen>0) allocate(ptmp(ilen))
 
 !   write(*,*)ilen,sizeof(ptmp)
 !  xuse(idx1,ilen)=0
@@ -186,7 +187,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
       x(idx1)%p(i)%polynomial=ptmp(i)%polynomial
       deallocate(ptmp(i)%nlist,ptmp(i)%polynomial)
   end do
-  deallocate(ptmp)
+  if (ilen>0) deallocate(ptmp)
 
   allocate(x(idx1)%p(ilen+1)%nlist(hashsize))
   allocate(x(idx1)%p(ilen+1)%polynomial(order+1))
@@ -327,8 +328,8 @@ implicit none
 
   do idx1=1,nbuckets
     xtmp=x(idx1)
-    curr=>xtmp
-    if (associated(curr%p)) then 
+!    curr=>xtmp
+    if (allocated(x(idx1)%p)) then 
        first=.false.
        ilen=xlen(idx1)
     else
