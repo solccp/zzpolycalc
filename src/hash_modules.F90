@@ -75,7 +75,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   type(ptrneigh),pointer :: curr
   type(ptrneigh), target :: xtmp
   logical :: first
-  type(neigh), pointer :: ptmp(:)
+  type(neigh), allocatable :: ptmp(:)
   integer(int64) :: ipack,idx2l,idx1l
   real(8)        :: highscore,score
   character(len=1) :: buf (3*nat*2),buf2
@@ -138,64 +138,40 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
   if (.not. replace) then
 
-   if (ilen>0) allocate(ptmp(ilen))
+    if (ilen>0) then 
+      allocate(ptmp(ilen+1))
+      ptmp(1:size(x(idx1)%p)) = x(idx1)%p
+      call move_alloc(ptmp,x(idx1)%p)
+    else  
+      allocate(x(idx1)%p(ilen+1))
+    end if
    
-  do i=1,ilen
-      allocate(ptmp(i)%nlist(hashsize))
-      allocate(ptmp(i)%polynomial(x(idx1)%p(i)%order+1))
-    
-      ptmp(i)%order=x(idx1)%p(i)%order
-      ptmp(i)%iseen=x(idx1)%p(i)%iseen
-      ptmp(i)%nat=x(idx1)%p(i)%nat
-      ptmp(i)%lastseen=x(idx1)%p(i)%lastseen
-      ptmp(i)%nlist=x(idx1)%p(i)%nlist
-      ptmp(i)%polynomial=x(idx1)%p(i)%polynomial
-      deallocate(x(idx1)%p(i)%nlist,x(idx1)%p(i)%polynomial)
-  end do
-
-  if (.not. first) deallocate(x(idx1)%p)
-  
-  allocate(x(idx1)%p(ilen+1))
-  do i=1,ilen
-      allocate(x(idx1)%p(i)%nlist(hashsize))
-      allocate(x(idx1)%p(i)%polynomial(ptmp(i)%order+1))
-    
-      x(idx1)%p(i)%order=ptmp(i)%order
-      x(idx1)%p(i)%iseen=ptmp(i)%iseen
-      x(idx1)%p(i)%nat=ptmp(i)%nat
-      x(idx1)%p(i)%lastseen=ptmp(i)%lastseen
-      x(idx1)%p(i)%nlist=ptmp(i)%nlist
-      x(idx1)%p(i)%polynomial=ptmp(i)%polynomial
-      deallocate(ptmp(i)%nlist,ptmp(i)%polynomial)
-  end do
-  if (ilen>0) deallocate(ptmp)
-
-  allocate(x(idx1)%p(ilen+1)%nlist(hashsize))
-  allocate(x(idx1)%p(ilen+1)%polynomial(order+1))
+    allocate(x(idx1)%p(ilen+1)%nlist(hashsize))
+    allocate(x(idx1)%p(ilen+1)%polynomial(order+1))
 
 
-  do i=1,hashsize
+    do i=1,hashsize
       x(idx1)%p(ilen+1)%nlist(i)=hashsum(i)
-  end do
-  x(idx1)%p(ilen+1)%order=order
-  if (.not.present(iseen)) then 
-    x(idx1)%p(ilen+1)%iseen=0
-  else
-    x(idx1)%p(ilen+1)%iseen=iseen
-  end if
-  x(idx1)%p(ilen+1)%nat=nat
-  if (.not.present(lastseen)) then
-    x(idx1)%p(ilen+1)%lastseen=nstructall
-  else
-    x(idx1)%p(ilen+1)%lastseen=lastseen
-  end if
-  do i=1,order+1
-    call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
-  end do
+    end do
+    x(idx1)%p(ilen+1)%order=order
+    if (.not.present(iseen)) then 
+      x(idx1)%p(ilen+1)%iseen=0
+    else
+      x(idx1)%p(ilen+1)%iseen=iseen
+    end if
+    x(idx1)%p(ilen+1)%nat=nat
+    if (.not.present(lastseen)) then
+      x(idx1)%p(ilen+1)%lastseen=nstructall
+    else
+      x(idx1)%p(ilen+1)%lastseen=lastseen
+    end if
+    do i=1,order+1
+      call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
+    end do
 
-  xlen(idx1)=xlen(idx1)+1
-  nstruct=nstruct+1
-  if (nstruct.eq.maxrecords) write(*,*)'Max records',nstruct,' achieved' 
+    xlen(idx1)=xlen(idx1)+1
+    nstruct=nstruct+1
+    if (nstruct.eq.maxrecords) write(*,*)'Max records',nstruct,' achieved' 
 else ! replace
 
 ! find best candidate to replace
