@@ -8,9 +8,10 @@ use ISO_FORTRAN_ENV
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 50000
-  integer, parameter :: vlongmax = 14
-  integer, parameter :: vbase = 1000000000
-  integer, parameter :: maxpolylength = 1000
+  integer, parameter :: vlongmax = 55
+  integer, parameter :: vbasedigits = 9
+  integer, parameter :: vbase = 10**vbasedigits
+  integer, parameter :: maxpolylength = 450+6+vlongmax*vbasedigits+10
 
   type,public :: vlonginteger
     integer,public :: leadpow

@@ -21,18 +21,30 @@ subroutine print_ZZ_polynomial(pah)
   cpos=1
   total=pah%polynomial(1)
   call print_vli_in_string(cpos,finalZZpolynomial,pah%polynomial(1))
-  if (pah%order > 0) then
-    write(finalZZpolynomial(cpos:),*)'+ '
+  if (pah%order == 0) then
+      write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)
+  else 
+    if (cpos > 450) then
+      write(*,*)'pl45',cpos
+      write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)      
+      finalZZpolynomial=''
+      cpos=1
+    else
+      write(finalZZpolynomial(cpos:),*)'+ '
+    end if
     cpos=cpos+3
     call print_vli_in_string(cpos,finalZZpolynomial,pah%polynomial(2))
     write(finalZZpolynomial(cpos:),*)'x'
     cpos=cpos+2
     total=addvli(pah%polynomial(1),pah%polynomial(2))
+    if (pah%order == 1) then
+          write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)
+    else if (cpos > 450) then
+          write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)      
+          finalZZpolynomial=''
+          cpos=1
+    end if
   end if
-  if (pah%order <= 1) then
-    write(*,*)finalZZpolynomial(1:cpos-1)
-  end if
-
 ! ##############################################
 ! # loop over all degrees of the ZZ polynomial #
 ! ##############################################
@@ -45,13 +57,15 @@ subroutine print_ZZ_polynomial(pah)
     cpos=cpos+3
     call print_int_in_string(cpos,finalZZpolynomial,i)
 
+    
 !   ####################################################
 !   # flush out the chunks of the polynomial to stdout #
 !   ####################################################
     if (i == pah%order) then
       write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)
     else if (cpos > 450) then
-      write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)
+!      write(*,*)'pl45',cpos
+      write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)      
       finalZZpolynomial=''
       cpos=1
     end if
