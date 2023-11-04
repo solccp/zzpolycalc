@@ -12,7 +12,7 @@ subroutine read_input(input_fname,pah)
   integer(kint) :: cnat=0,status,bnat,i,j,k,nhex,l,m,errorcode,a1,a2
   integer(kint),allocatable,dimension(:,:) :: lista
   integer(kint),allocatable,dimension(:,:) :: localbondlist
-  character(len=2) :: atname
+  character(len=200) :: atname
   real(kreal),parameter :: ccdist=1.7d0
   real(kreal) :: inertia(3,3),eival(3),work(100)
   real(kreal),allocatable,dimension(:,:) :: geom
@@ -70,6 +70,7 @@ subroutine read_input(input_fname,pah)
   allocate(pah%neighbornumber(pah%nat))
   allocate(pah%neighborlist(3,pah%nat))
   pah%neighbornumber=0
+  pah%neighborlist=0
 
   if (is_adjacencyfile) then
     do i=1,cnat-1
@@ -116,7 +117,7 @@ subroutine read_input(input_fname,pah)
 
   
   do i=1,cnat
-    write(22,'(4(I5,2x))')i,(pah%neighborlist(k,i),k=1,3)
+    write(22,'(4(I,2x))')i,(pah%neighborlist(k,i),k=1,pah%neighbornumber(i))
   end do
 
   close(22)
