@@ -15,6 +15,10 @@ CC := icc
 #FFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
 FFLAGS := -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
 #FFLAGS :=-profile-functions -profile-loops=all -profile-loops-report=2 -Ofast  -axSSE4.2,AVX,CORE-AVX2 -module ${MODDIR} 
+#FFLAGS := -g3 -O0 -module ${MODDIR} -fno-omit-frame-pointer -fasynchronous-unwind-tables -fexceptions -debug -trace -check all -debug all
+
+#FFLAGS := -O0 -g3 -module ${MODDIR} -stand f03  -debug all -trace  -assume realloc_lhs  -check all  -traceback  -warn all  -fstack-protector  -assume protect_parens  -implicitnone
+
 
 
 #-check all -debug all
@@ -35,15 +39,23 @@ LDFLAGS := -static  -lpthread -qopenmp
 # -debug all
 #LDFLAGS := -static -lmkl_em64t -lguide -lpthread
 
-COMMON_FILES := zhang hash_modules
+COMMON_FILES :=  hash_modules
+PREPROC_FILES := zhang
 ZHANG_FILES := types_module input functions daughters findZZ polynomial decompose operators print hexagon schlegel options getopt
 C_FILES := md5 xxhashwrapper
 
 COMMON_SRCS := $(addsuffix .F90, ${COMMON_FILES})
 COMMON_SRCS := $(addprefix ${SRCDIR}, ${COMMON_SRCS})
 
+PREPROC_SRCS := $(addsuffix .F90, ${PREPROC_FILES})
+PREPROC_SRCS := $(addprefix ${SRCDIR}, ${PREPROC_SRCS})
+
+PREPROC_OBJS := $(addsuffix .o, ${PREPROC_FILES})
+PREPROC_OBJS := $(addprefix ${OBJDIR}, ${PREPROC_OBJS})
+
 COMMON_OBJS := $(addsuffix .o, ${COMMON_FILES})
 COMMON_OBJS := $(addprefix ${OBJDIR}, ${COMMON_OBJS})
+
 
 C_SRCS       := $(addsuffix .c, ${C_FILES})
 C_SRCS       := $(addprefix ${SRCDIR}, ${C_SRCS})
@@ -58,7 +70,7 @@ ZHANG_SRCS := $(addprefix ${SRCDIR}, ${ZHANG_SRCS})
 ZHANG_OBJS := $(addsuffix .o, ${ZHANG_FILES})
 ZHANG_OBJS := $(addprefix ${OBJDIR}, ${ZHANG_OBJS})
 
-SRCS := ${COMMON_SRCS} ${ZHANG_SRCS} ${C_SRCS}
+SRCS := ${COMMON_SRCS} ${PREPROC_SRCS} ${ZHANG_SRCS} ${C_SRCS}
 
 .PHONY: all
 all: zhang
@@ -78,7 +90,7 @@ mrproper: clean
 	rm -f ${SRCDIR}*~
 	rm -f *~
 
-${BINDIR}zhangadjtmp: ${ZHANG_OBJS} ${COMMON_OBJS} ${C_OBJS}
+${BINDIR}zhangadjtmp: ${ZHANG_OBJS} ${PREPROC_OBJS} ${COMMON_OBJS} ${C_OBJS}
 	@echo [LD] $@
 	@${FC} ${LDFLAGS} -o $@ $^  -L ~/ZZ/xxHash/ -l xxhash
 
