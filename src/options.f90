@@ -3,6 +3,7 @@ module options_module
   implicit none
   save
   integer :: nbuckets
+  integer :: chunksize
   integer(int64) :: writemark 
   integer :: maxrecords 
   logical :: is_adjacencyfile
@@ -14,6 +15,7 @@ module options_module
   logical :: print_XML
 contains
   subroutine initialize_options()
+    chunksize = 1
     nbuckets = 2097152
     writemark =   200000000
     maxrecords =  52000000

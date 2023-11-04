@@ -139,11 +139,13 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   if (.not. replace) then
 
     if (ilen>0) then 
-      allocate(ptmp(ilen+1))
-      ptmp(1:size(x(idx1)%p)) = x(idx1)%p
-      call move_alloc(ptmp,x(idx1)%p)
+      if ( ilen == size(x(idx1)%p)) then ! no room needs enlarging
+        allocate(ptmp(ilen+chunksize))
+        ptmp(1:size(x(idx1)%p)) = x(idx1)%p
+        call move_alloc(ptmp,x(idx1)%p)
+      end if
     else  
-      allocate(x(idx1)%p(ilen+1))
+      allocate(x(idx1)%p(ilen+chunksize))
     end if
    
     allocate(x(idx1)%p(ilen+1)%nlist(hashsize))
