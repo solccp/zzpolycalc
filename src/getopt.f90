@@ -76,7 +76,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('ham:pQr:s:w:')
+        okey = getopt('ham:pQr:s:vw:')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -106,6 +106,11 @@ subroutine read_options(input_fname)
             read(optarg, *) nbuckets
         end if
 
+        if(okey == 'v') then
+            verbose = .true.
+        end if
+
+
         if(okey == 'w') then
             read(optarg, '(a)') write_cache_fname
             has_write_cache_file = .true. 
@@ -133,6 +138,7 @@ subroutine print_usage()
     write(*, '(1x,10a)') "    ", "-Q", "                ",  "Print the ZZ polynomial in XML format"
     write(*, '(1x,10a)') "    ", "-r file", "           ",  "Read cached structures from {file}"
     write(*, '(1x,10a)') "    ", "-s number", "         ",  "Use {number} of buckets in cache database"
+    write(*, '(1x,10a)') "    ", "-v", "                ",  "Verbose printing"
     write(*, '(1x,10a)') "    ", "-w file", "           ",  "Write cached structures to {file}"
     write(*, '(1x,10a)') "    ", "-h", "                ",  "Show this message"
 end subroutine

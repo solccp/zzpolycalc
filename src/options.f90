@@ -13,6 +13,7 @@ module options_module
   character(len=100) :: write_cache_fname
   logical :: print_bondlevel 
   logical :: print_XML
+  logical :: verbose
 contains
   subroutine initialize_options()
     chunksize = 1
@@ -22,7 +23,19 @@ contains
     is_adjacencyfile = .false.
     print_bondlevel = .false.
     print_XML = .false. 
+    verbose = .false.
     has_read_cache_file = .false.
     has_write_cache_file = .false. 
   end subroutine
+  subroutine print_options()
+    use types_module
+!    write(*,'(a,i)')'chunksize',chunksize
+    write(*,'(a,i)')'nbuckets',nbuckets
+    write(*,'(a,i)')'maxrecords',maxrecords
+    if (has_read_cache_file) write(*,'(a,a)')'Read cache from:  ',trim(read_cache_fname)
+    if (has_write_cache_file) write(*,'(a,a)')'Write cache to:  ',trim(write_cache_fname)
+    write(*,'(a,i)')'vlongmax',vlongmax
+  end subroutine print_options   
+    
+    
 end module

@@ -96,7 +96,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
     nstructall=nstructall+1
     if (mod(nstructall,1000000).eq.0)  then
       call system_mem_usage(mem)
-      write(*,*)'nstruct',nstructall,nstruct,'mem',mem
+      if (verbose) write(*,*)'nstruct',nstructall,nstruct,'mem',mem
     end if 
   end if
 
@@ -184,7 +184,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
     xlen(idx1)=xlen(idx1)+1
     nstruct=nstruct+1
-    if (nstruct.eq.maxrecords) write(*,*)'Max records',nstruct,' achieved' 
+    if (nstruct.eq.maxrecords .and. verbose) write(*,*)'Max records',nstruct,' achieved' 
 else ! replace
 
 ! find best candidate to replace
@@ -232,7 +232,7 @@ end if
   if (.not.present(hashseen) .and. .not. present(duringread)) then
    if (mod(nstructall,writemark).eq.0)  then
     if (has_write_cache_file) then   
-      write(*,*)'Saving cache',write_cache_fname
+      if (verbose) write(*,*)'Saving cache',trim(write_cache_fname)
 !    call execute_command_line ("mv cache.bin cache.bin.bak")
 !     ires=rename('cache.bin','cache.bin.bak')
       call writetodisk(write_cache_fname)
@@ -248,6 +248,7 @@ end subroutine add_neigh
 
 subroutine writetodisk(fname)
 use hash_module
+use options_module
 implicit none
   type(ptrneigh),pointer :: curr
   type(ptrneigh), target :: xtmp
@@ -285,6 +286,7 @@ implicit none
       end do
     end do
   end do
+  if (verbose) write (*,*)'cache saved'
 !  write(*,*)'Max large integer size: ',leadpowmax
   close(23)
   close(24)
@@ -311,7 +313,7 @@ implicit none
    allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
    firstrun=.false.
    xlen=0
-  write(*,*)'Reading cache', fname
+  if (verbose) write(*,*)'Reading cache'
   open(23,file=trim(fname),FORM='UNFORMATTED')
   read(23)vlong,nstructall
   if (vlong.gt.vlongmax) then
@@ -333,7 +335,7 @@ implicit none
   end if
   end do
   close(23)  
-  write(*,*)'cache processed'
+  if (verbose) write(*,*)'cache processed'
 
 end subroutine readfromdisk
 

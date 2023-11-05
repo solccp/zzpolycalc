@@ -21,7 +21,7 @@ program zhang_polynomial
   logical :: cacheexists
   character(len=200) :: input_fname
 
-
+if (verbose) then
 #ifdef USE_XXHASH
   write(*,*)'xxhash used'
 #else
@@ -31,7 +31,7 @@ program zhang_polynomial
   write(*,*)'MD5 used'
 #endif
 #endif
-
+end if
 
 ! ############################################################
 ! # read initial geometry data and create topological matrix #
@@ -39,6 +39,7 @@ program zhang_polynomial
 
   call initialize_options() 
   call read_options(input_fname)
+  if (verbose) call print_options()
   call read_input(input_fname,pah)
 
   
@@ -67,7 +68,7 @@ program zhang_polynomial
   else
     call print_ZZ_polynomial(pah)
   endif
-  write(*,*)'Seen Unique Remembered',nstructseen,nstructall,nstruct
+  if (verbose) write(*,'(a,3i)')'Seen Unique Remembered',nstructseen,nstructall,nstruct
   notused=0
   do i=1,nbuckets
     do j=1,xlen(i)
@@ -76,7 +77,7 @@ program zhang_polynomial
     end do
   end do
 
-  write(*,*)'Not used:',notused
+  if (verbose) write(*,'(a,i)')'Not used:',notused
   if (has_write_cache_file) then
     call writetodisk(write_cache_fname)
   end if
