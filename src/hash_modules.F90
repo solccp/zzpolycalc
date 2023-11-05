@@ -262,7 +262,7 @@ implicit none
   open(23,file=fname,FORM='UNFORMATTED')
   write(23)vlongmax,nstructall
   open(24,file='cache.txt',FORM='FORMATTED')
-  write(23)vlongmax,nstructall
+!  write(23)vlongmax,nstructall
 
 
   do idx1=1,nbuckets
