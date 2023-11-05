@@ -45,7 +45,8 @@ use, intrinsic :: iso_c_binding
      integer(int16) :: nat
      integer(kint) :: iseen
      integer(int64) :: lastseen
-     type(vlonginteger),pointer :: polynomial(:)
+     integer(kint) :: maxpow
+     integer(kint),pointer :: packedpolynomial(:)
   end type neigh
 
   type ptrneigh
@@ -64,6 +65,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 !  USE IFPORT ! for rename
   use hash_module
   use options_module
+  use types_module
   implicit none
   integer(kint),intent(in) :: nat
   integer(kint), intent(in) :: nbnum(nat)
@@ -88,6 +90,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
   logical :: replace
   integer :: mem,ires
+  integer :: maxpow
 
   if (.not. present(duringread)) then ! only print in main calculation not when reading cache.bin
     nstructall=nstructall+1
@@ -149,8 +152,8 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
     end if
    
     allocate(x(idx1)%p(ilen+1)%nlist(hashsize))
-    allocate(x(idx1)%p(ilen+1)%polynomial(order+1))
-
+    
+    
 
     do i=1,hashsize
       x(idx1)%p(ilen+1)%nlist(i)=hashsum(i)
@@ -167,9 +170,17 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
     else
       x(idx1)%p(ilen+1)%lastseen=lastseen
     end if
-    do i=1,order+1
-      call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
-    end do
+
+    maxpow=getmaxpow(poly,order+1)
+    x(idx1)%p(ilen+1)%maxpow = maxpow
+    allocate(x(idx1)%p(ilen+1)%packedpolynomial(maxpow*(order+1)))
+    
+    call packvliarray(poly,x(idx1)%p(ilen+1)%packedpolynomial,order+1,maxpow)
+  
+    
+!    do i=1,order+1
+!      call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
+!    end do
 
     xlen(idx1)=xlen(idx1)+1
     nstruct=nstruct+1
@@ -195,10 +206,13 @@ end do
       x(idx1)%p(j)%nlist(i)=hashsum(i)
   end do
  
-  if (x(idx1)%p(j)%order .ne. order) then
-     deallocate(x(idx1)%p(j)%polynomial) 
-     allocate(x(idx1)%p(j)%polynomial(order+1))
+  maxpow=getmaxpow(poly,order+1)
+  if (x(idx1)%p(j)%order .ne. order .or. x(idx1)%p(j)%maxpow .ne. maxpow) then
+     deallocate(x(idx1)%p(j)%packedpolynomial) 
+     allocate(x(idx1)%p(j)%packedpolynomial((order+1)*maxpow))
   end if
+   x(idx1)%p(j)%maxpow = maxpow
+  call packvliarray(poly,x(idx1)%p(j)%packedpolynomial,order+1,maxpow)
  
 
   x(idx1)%p(j)%order=order
@@ -206,9 +220,9 @@ end do
   x(idx1)%p(j)%nat=nat
   x(idx1)%p(j)%lastseen=nstructall
  
-  do i=1,order+1
-    call cpvli(poly(i),x(idx1)%p(j)%polynomial(i))
-  end do
+!  do i=1,order+1
+!    call cpvli(poly(i),x(idx1)%p(j)%polynomial(i))
+!  end do
 
 !  j=j+1
 !  if (j.gt.xlen(idx1)) j=1
@@ -262,11 +276,11 @@ implicit none
        ilen=0
     end if
     do i=1,ilen
-      write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,x(idx1)%p(i)%nlist
+!      write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,x(idx1)%p(i)%nlist
       write(24,*)x(idx1)%p(i)%nat,x(idx1)%p(i)%iseen,x(idx1)%p(i)%order
-      call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
+!      call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
       do j=1,x(idx1)%p(i)%order+1
-        if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
+!        if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
       end do
     end do
   end do
@@ -340,7 +354,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   integer(int64) :: idx2l,idx1l
   character(len=1) :: buf (3*nat*2),buf2
   integer(C_signed_char) :: hashsum(hashsize)
-
   type(neigh) :: temp
   integer(int64), pointer :: temp2
 
@@ -393,9 +406,13 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
     x(idx1)%p(i)%iseen=x(idx1)%p(i)%iseen+1
     x(idx1)%p(i)%lastseen=nstructall
     allocate(poly(order+1))
-     do i=1,order+1
-      call cpvli(match%polynomial(i),poly(i))
-    end do
+!     do i=1,order+1
+!       call unpackvliarray(res,a,n,mpow)
+!
+!      call cpvli(match%polynomial(i),poly(i))
+!    end do
+    call unpackvliarray(match%packedpolynomial,poly,order+1,match%maxpow)
+
  end if
 
 

@@ -8,7 +8,7 @@ use ISO_FORTRAN_ENV
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 50000
-  integer, parameter :: vlongmax = 55
+  integer, parameter :: vlongmax = 51
   integer, parameter :: vbasedigits = 9
   integer, parameter :: vbase = 10**vbasedigits
   integer, parameter :: maxpolylength = 450+6+vlongmax*vbasedigits+10
@@ -58,7 +58,7 @@ contains
   end function setvli
 
 
-
+  
 
 
   function addvli(a,b) result(c)
@@ -232,6 +232,50 @@ contains
     end if
   end do
   end subroutine readfromfile
+
+  function getmaxpow(a,n) result(maxpow)
+    implicit none
+    type(vlonginteger),intent(in) :: a(n)
+    integer(kint),intent(in) :: n
+    integer(kint) :: i,maxpow
+    maxpow=0
+    do i=1,n
+      if (a(i)%leadpow > maxpow) maxpow = a(i)%leadpow
+    end do
+  end function getmaxpow      
+ 
+  subroutine packvliarray(a,res,n,mpow)
+    implicit none
+    type(vlonginteger),intent(in) :: a(n)
+    integer(kint),intent(out) :: res(mpow,n)
+    integer(kint),intent(in) :: n,mpow
+    integer(kint) :: i,j
+    
+    do i=1,n
+      do j=1,mpow
+        res(j,i)=a(i)%tabl(j)
+      end do
+    end do  
+  end subroutine packvliarray
+
+  subroutine unpackvliarray(res,a,n,mpow)
+    implicit none
+    type(vlonginteger),intent(out) :: a(n)
+    integer(kint),intent(in) :: res(mpow,n)
+    integer(kint),intent(in) :: n,mpow
+    integer(kint) :: i,j
+    
+    do i=1,n
+      a(i)%tabl=0 ! very important. Proper zeroing.
+      a(i)%leadpow=1 ! there has to be leadpow for a(1)==0
+      do j=1,mpow
+        if (res(j,i) .ne. 0) then ! this assumes all vlongintegers were properly zeroed after leadpow
+          a(i)%tabl(j)=res(j,i)
+          a(i)%leadpow=j
+        end if
+      end do
+    end do  
+  end subroutine unpackvliarray
 
 
 end module types_module
