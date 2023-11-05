@@ -14,6 +14,7 @@ module options_module
   logical :: print_bondlevel 
   logical :: print_XML
   logical :: verbose
+  logical :: unsorted_geometry
 contains
   subroutine initialize_options()
     chunksize = 1
@@ -24,6 +25,7 @@ contains
     print_bondlevel = .false.
     print_XML = .false. 
     verbose = .false.
+    unsorted_geometry = .false. 
     has_read_cache_file = .false.
     has_write_cache_file = .false. 
   end subroutine

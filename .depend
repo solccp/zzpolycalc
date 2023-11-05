@@ -1,14 +1,18 @@
+obj/hash_modules.o : src/hash_modules.F90 obj/options.o obj/types_module.o 
+obj/zhang.o : src/zhang.F90 obj/getopt.o obj/options.o obj/hash_modules.o obj/types_module.o 
 obj/types_module.o : src/types_module.f90 
-obj/crc.o : src/crc.f90 
-obj/zhang.o : src/zhang.f90 obj/types_module.o obj/types_module.o 
-obj/input.o : src/input.f90 obj/types_module.o 
+obj/input.o : src/input.f90 obj/options.o obj/types_module.o 
 obj/functions.o : src/functions.f90 obj/types_module.o 
 obj/daughters.o : src/daughters.f90 obj/types_module.o 
-obj/findZZ.o : src/findZZ.f90 obj/types_module.o obj/types_module.o 
+obj/findZZ.o : src/findZZ.f90 obj/hash_modules.o obj/types_module.o 
 obj/polynomial.o : src/polynomial.f90 obj/types_module.o 
-obj/decompose.o : src/decompose.f90 obj/types_module.o 
+obj/decompose.o : src/decompose.f90 obj/options.o obj/types_module.o 
 obj/operators.o : src/operators.f90 obj/types_module.o 
 obj/print.o : src/print.f90 obj/types_module.o 
 obj/hexagon.o : src/hexagon.f90 obj/types_module.o 
 obj/schlegel.o : src/schlegel.f90 obj/types_module.o 
+obj/options.o : src/options.f90 obj/types_module.o 
+obj/getopt.o : src/getopt.f90 obj/options.o 
+obj/sort.o : src/sort.f90 obj/types_module.o 
 obj/md5.o : src/md5.c 
+obj/xxhashwrapper.o : src/xxhashwrapper.c 

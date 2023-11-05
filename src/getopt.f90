@@ -76,7 +76,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('ham:pQr:s:vw:')
+        okey = getopt('ham:pQr:s:uvw:')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -110,6 +110,9 @@ subroutine read_options(input_fname)
             verbose = .true.
         end if
 
+        if(okey == 'u') then
+            unsorted_geometry = .true.
+        end if
 
         if(okey == 'w') then
             read(optarg, '(a)') write_cache_fname
@@ -138,6 +141,7 @@ subroutine print_usage()
     write(*, '(1x,10a)') "    ", "-Q", "                ",  "Print the ZZ polynomial in XML format"
     write(*, '(1x,10a)') "    ", "-r file", "           ",  "Read cached structures from {file}"
     write(*, '(1x,10a)') "    ", "-s number", "         ",  "Use {number} of buckets in cache database"
+    write(*, '(1x,10a)') "    ", "-u", "                ",  "Use unsorted geometry sorted by default"
     write(*, '(1x,10a)') "    ", "-v", "                ",  "Verbose printing"
     write(*, '(1x,10a)') "    ", "-w file", "           ",  "Write cached structures to {file}"
     write(*, '(1x,10a)') "    ", "-h", "                ",  "Show this message"

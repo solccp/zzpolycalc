@@ -49,7 +49,8 @@ subroutine read_input(input_fname,pah)
       end if
     end do
     close(20)
-  end if
+    if (.not. unsorted_geometry) call sort(geom,cnat)
+  end if ! is_adjacency_file
 
 ! ######################################
 ! # verify the maximal number of atoms #
@@ -61,6 +62,7 @@ subroutine read_input(input_fname,pah)
     stop
   end if
 
+  
 ! ######################
 ! # allocate structure #
 ! ######################
