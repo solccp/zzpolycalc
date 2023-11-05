@@ -277,6 +277,62 @@ contains
     end do  
   end subroutine unpackvliarray
 
+function getpackedsize(a,n) result(m)
+    implicit none
+    type(vlonginteger),intent(in) :: a(n)
+    integer(kint),intent(in) :: n
+    integer(kint) :: i,m
+    m=0
+    do i=1,n
+      m=m+a(i)%leadpow+1 ! + 1 due to storing the leadpow
+    end do
+  end function getpackedsize      
+ 
+
+  subroutine packvliarray2(a,res,n,nres)
+    implicit none
+    type(vlonginteger),intent(in) :: a(n)
+    integer(kint),intent(out) :: res(nres)
+    integer(kint),intent(in) :: n,nres
+    integer(kint) :: i,j,k,npow
+    
+    k=0
+    do i=1,n
+      k=k+1
+      npow=a(i)%leadpow
+      res(k)=npow
+      do j=1,npow
+        k=k+1
+        res(k)=a(i)%tabl(j)
+      end do
+    end do  
+  end subroutine packvliarray2
+
+
+  subroutine unpackvliarray2(res,a,n,nres)
+    implicit none
+    type(vlonginteger),intent(out) :: a(n)
+    integer(kint),intent(in) :: res(nres)
+    integer(kint),intent(in) :: n,nres
+    integer(kint) :: i,j,k,npow
+    
+    do i=1,n
+      a(i)%leadpow=0
+      a(i)%tabl=0
+    end do
+    k=0
+    do i=1,n
+      k=k+1
+      npow=res(k)
+      a(i)%leadpow=npow
+      do j=1,npow
+        k=k+1
+        a(i)%tabl(j)=res(k)
+      end do
+    end do
+  end subroutine unpackvliarray2
+
+
 
 end module types_module
 
