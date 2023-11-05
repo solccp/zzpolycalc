@@ -254,15 +254,15 @@ implicit none
   logical :: first
   integer(int64) :: ipack,idx2l,idx1l
   real(8)        :: highscore,score
-  integer :: i,j,ilen,idx2,idx1,ihighscore
+  integer :: i,j,ilen,idx2,idx1,ihighscore,ibuf
   integer(C_signed_char) :: hashsum(hashsize)
   integer(kint) :: leadpowmax=0
   character(len=*), intent(in) :: fname
 
-  open(23,file=fname,FORM='UNFORMATTED')
+  open(23,file=trim(fname),FORM='UNFORMATTED')
   write(23)vlongmax,nstructall
   open(24,file='cache.txt',FORM='FORMATTED')
-!  write(23)vlongmax,nstructall
+!  write(24)vlongmax,nstructall
 
 
   do idx1=1,nbuckets
@@ -276,15 +276,16 @@ implicit none
        ilen=0
     end if
     do i=1,ilen
-!      write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,x(idx1)%p(i)%nlist
+      write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,(x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize)
       write(24,*)x(idx1)%p(i)%nat,x(idx1)%p(i)%iseen,x(idx1)%p(i)%order
+      write(23)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
 !      call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
       do j=1,x(idx1)%p(i)%order+1
 !        if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
       end do
     end do
   end do
-  write(*,*)'Max large integer size: ',leadpowmax
+!  write(*,*)'Max large integer size: ',leadpowmax
   close(23)
   close(24)
 end subroutine writetodisk
@@ -305,12 +306,13 @@ implicit none
      integer(int64) :: lastseen
      type(vlonginteger),allocatable :: poly(:)
   character(len=*), intent(in) :: fname
-
+  integer :: ibuf
+  
    allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
    firstrun=.false.
    xlen=0
   write(*,*)'Reading cache', fname
-  open(23,file=fname,FORM='UNFORMATTED')
+  open(23,file=trim(fname),FORM='UNFORMATTED')
   read(23)vlong,nstructall
   if (vlong.gt.vlongmax) then
     write(*,*)'WARNING!'
@@ -320,12 +322,11 @@ implicit none
   end if
   ires=0
   do while (ires.eq.0)
-  read(23,IOSTAT=ires)order,iseen,nat,lastseen,hashsum
+  read(23,IOSTAT=ires)order,iseen,nat,lastseen,(hashsum(ibuf),ibuf=1,hashsize)
   if (ires.eq.0) then
    allocate(poly(order+1))
    order32=order
    nat32=nat
-!   write(*,*)order,iseen,nat,lastseen,hashsum
    call readfromfile(23,poly,order32+1)
    call add_neigh(nat32,nbnum,a,order32,poly,hashsum,iseen,lastseen,.true.)
    deallocate(poly)
