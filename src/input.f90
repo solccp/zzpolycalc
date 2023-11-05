@@ -115,9 +115,9 @@ subroutine read_input(input_fname,pah)
   
     open(22,file='neighborlist')
 
-  
+  write(22,*)cnat
   do i=1,cnat
-    write(22,'(4(I,2x))')i,(pah%neighborlist(k,i),k=1,pah%neighbornumber(i))
+    write(22,'(4(I,2x))')i,(pah%neighborlist(k,i),k=1,3)
   end do
 
   close(22)
