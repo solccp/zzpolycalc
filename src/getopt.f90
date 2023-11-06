@@ -135,16 +135,16 @@ end subroutine read_options
 subroutine print_usage()
     write(*, '(1x,a)') "Usage: ZZPolyCalc [options] input"
     write(*, '(1x,a)') "Options:"
-    write(*, '(1x,10a)') "    ", "-a", "                ",  "Input file specifies adjacency instead of Cartesian geometry"
-    write(*, '(1x,10a)') "    ", "-m number", "         ",  "Maximum {number} of structures in cache database"
-    write(*, '(1x,10a)') "    ", "-p", "                ",  "Print intermediate bondlevel structures"
+    write(*, '(1x,10a)') "    ", "-a", "                ",  "Specifies that the input file contains an adjacency matrix instead of XYZ format"
+    write(*, '(1x,10a)') "    ", "-m number", "         ",  "Sets the maximum {number} of structures in the cache database"
+    write(*, '(1x,10a)') "    ", "-p", "                ",  "Prints intermediate bond-level structures"
     write(*, '(1x,10a)') "    ", "-Q", "                ",  "Print the ZZ polynomial in XML format"
-    write(*, '(1x,10a)') "    ", "-r file", "           ",  "Read cached structures from {file}"
-    write(*, '(1x,10a)') "    ", "-s number", "         ",  "Use {number} of buckets in cache database"
-    write(*, '(1x,10a)') "    ", "-u", "                ",  "Use unsorted geometry sorted by default"
-    write(*, '(1x,10a)') "    ", "-v", "                ",  "Verbose printing"
-    write(*, '(1x,10a)') "    ", "-w file", "           ",  "Write cached structures to {file}"
-    write(*, '(1x,10a)') "    ", "-h", "                ",  "Show this message"
+    write(*, '(1x,10a)') "    ", "-r file", "           ",  "Reads cached structures from a {file}"
+    write(*, '(1x,10a)') "    ", "-s number", "         ",  "Sets the {number} of buckets in the cache database"
+    write(*, '(1x,10a)') "    ", "-u", "                ",  "Uses unmodified input XYZ geometry (sorted by default)"
+    write(*, '(1x,10a)') "    ", "-v", "                ",  "Enables verbose printing"
+    write(*, '(1x,10a)') "    ", "-w file", "           ",  "Writes cached structures to a {file}"
+    write(*, '(1x,10a)') "    ", "-h", "                ",  "Displays this help message"
 end subroutine
 
 

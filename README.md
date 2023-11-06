@@ -1,41 +1,33 @@
-ZZPolyCalc: An open-source code with structure caching for determination of Zhang-Zhang polynomials of carbon nanostructures
+ZZPolyCalc: An Open-Source Code with Structure Caching for the Determination of Zhang-Zhang Polynomials of Carbon Nanostructures
 
-ZZPolyCalc calculates Zhang-Zhang polynomials for carbon structures. The code is improved version
-of the non-cached ZZCalculator <https://github.com/solccp/zzcalculator>. It preserves most
-of the ZZCalculator options, significantly improves the speed due to caching and
-adds support for five-membered rings.  
+ZZPolyCalc computes Zhang-Zhang polynomials for carbon nanostructures. This code is an improved version of the non-cached ZZCalculator (<https://github.com/solccp/zzcalculator>). It retains most of the ZZCalculator's options, significantly enhances speed due to caching, and adds support for five-membered rings.
 
-ZZPolyCalc is released under the GNU General Public License ver 3. Please consult
-the included `LICENSE <LICENSE>`_ file for the detailed licensing conditions.
+ZZPolyCalc is released under the GNU General Public License ver. 3. Please consult the included `LICENSE <LICENSE>`_ file for detailed licensing conditions.
 
-
-Installation requirements
+Installation Requirements
 =========================
 
-* A Fortran 2003 compliant compiler (recommended Intel compiler)
-
-* A C-compiler 
-
+* A Fortran 2003 compliant compiler (Intel compiler recommended)
+* A C compiler
 * GNU make
 
-Additionally, optional but recommended:
+Additionally, though optional, the following are recommended:
 
 * CMake (version 2.8 or newer)
-
-* `xxHash <https://github.com/Cyan4973/xxHash> library`_ for XXH128 hash
+* `xxHash <https://github.com/Cyan4973/xxHash> library`_ for the XXH128 hash
 
 or
 
-* libSSL library for MD5 or SHA256 hash. 
+* libSSL library for the MD5 or SHA256 hash.
 
-The code will compile with neither of these libraries but with a less optimized code for hashing. 
+The code will compile without these hashing libraries but with less optimized hashing code.
 
 Building
 ========
 
-# Recommended to use CMake
+# It is recommended to use CMake.
 
-# Compile the code:
+# To compile the code:
 
     mkdir build
     cd build
@@ -44,87 +36,76 @@ Building
     make test
     make install
 
-The code will install to bin/ZZPolyCalc
+The code will be installed in bin/ZZPolyCalc.
 
-# Changing the compiler
-    CC=icc FC=ifortran cmake ..
+# To change the compiler:
+    CC=icc FC=ifort cmake ..
 
-# Specifying non-standard location of librares
+# To specify a non-standard location of libraries:
+    CC=icc FC=ifort CMAKE_PREFIX_PATH=/path/to/xxHash cmake ..
 
-    CC=icc FC=ifortran CMAKE_PREFIX_PATH=/path/to/xxHash cmake ..
-
-# 
-
-# Alternatively, the code can be compiled with issuing
-
+# Alternatively, the code can be compiled by simply issuing:
     make
 
-But manual modification of compiler and/or libraries may be needed.
+However, manual modification of the compiler and/or libraries may be necessary.
 
 Usage
-======
+=====
 
-For basic usage, only a single input with XYZ file format is required
+For basic usage, a single input with an XYZ file format is required:
 
 ```bash
 $ bin/ZZPolyCalc test/benzene.xyz
 
  2 + 1 x
  total: 3
-     ```
+```
 
-calculates the ZZ polynomial equal to 2+x for benzene. The `total' printed corresponds to the
-Clar number equal to value of the polynomal for x=1.
+This command calculates the ZZ polynomial equal to 2+x for benzene. The total printed corresponds to the Clar number, which is the value of the polynomial when x=1.
 
-XYZ can contain any type of atoms but all atoms apart from carbons will be ignored. 
+The XYZ file can contain any type of atoms, but all atoms apart from carbon will be ignored.
 
-Other more advanced options can be printed with 
+More advanced options can be displayed with:
 
 ```bash
 $ bin/ZZPolyCalc -h
 
- Usage: ZZPolyCalc [options] input
- Options:
-     -a                Input file specifies adjacency instead of Cartesian geometry
-     -m number         Maximum {number} of structures in cache database
-     -p                Print intermediate bondlevel structures
-     -Q                Print the ZZ polynomial in XML format
-     -r file           Read cached structures from {file}
-     -s number         Use {number} of buckets in cache database
-     -u                Use unsorted geometry sorted by default
-     -v                Verbose printing
-     -w file           Write cached structures to {file}
-     -h                Show this message
-     ```
+Usage: ZZPolyCalc [options] input
+Options:
+    -a                Specifies that the input file contains an adjacency matrix instead of XYZ format
+    -m number         Sets the maximum {number} of structures in the cache database
+    -p                Prints intermediate bond-level structures
+    -Q                Prints the ZZ polynomial in XML format
+    -r file           Reads cached structures from a {file}
+    -s number         Sets the {number} of buckets in the cache database
+    -u                Uses unmodified input XYZ geometry (sorted by default)
+    -v                Enables verbose printing
+    -w file           Writes cached structures to a {file}
+    -h                Displays this help message
+```
 
--a option specifies that the input geometry file contains adjacency (connectivity) matrix. The first line
-should contain the total number of atoms and the following lines contain
+The -a option indicates that the input geometry file contains an adjacency (connectivity) matrix. The first line should contain the total number of atoms, and the following lines contain:
 
-linenumber  atom1 atom2 atom3
+linenumber atom1 atom2 atom3
 
-where atom1, atom2, and atom3 respresent connected atom numbers. If only two atoms are connected, atom3 should be 0. 
+where atom1, atom2, and atom3 represent connected atom numbers. If only two atoms are connected, atom3 should be 0.
 
-This option is useful for systems, where Cartesian geometry is difficult to obtain, such as fullerenes.  
+This option is useful for systems where Cartesian geometry is difficult to obtain, such as fullerenes.
 
--m specifies the number of structures in the cache database. The structures beyond this number will replace previously computed.
+The -m option specifies the number of structures in the cache database. Structures beyond this number will replace previously computed ones.
 
-This option determines the memory usage, although exact memory will depend on size of the fragments and the size of the
-ZZ polynomial. Since newer structures may be larger than the older ones, after achiving the limit, the memory
-usage may still grow and it is recommended that this limit should be specified lower than the total estimated usage. 
+This option determines memory usage, although the exact memory footprint will depend on the size of the fragments and the size of the ZZ polynomial. Since newer structures may be larger than older ones, after reaching the limit, memory usage may still increase. Therefore, it is recommended to set this limit lower than the total estimated usage.
 
--p prints intermediate structures that are obtained by removing bonds of the subseuent structures. Apart from 
-showing the progress, for some reqular systems, these intermediate fragments represent all the systems smaller than calculated.
+The -p option prints intermediate structures that are obtained by removing bonds from subsequent structures. This not only shows progress but, for some regular systems, these intermediate fragments represent all systems smaller than the one being calculated.
 
--Q prints the polynomial in XML format, instead of ASCII. It may be usefull for automatic postprocessing. 
- 
--r and -w options specify files for reading and writing the cache file. It is usefull for checkpointing
-or for calculating families of structures that share similarities. It is usefull only for very large systems. 
+The -Q option outputs the polynomial in XML format, which may be useful for automatic post-processing.
 
--s specifies the number of buckets in the cache database. The larger number increases slightly the speed of the program at the
-cost of larger memory. In case the database is smaller than the calculated number of structures, it is recommended that
-the databse size is at least 50 times larger than the number of buckets. 
+The -r and -w options are for specifying files to read from and write to the cache, respectively. This is useful for checkpointing or calculating families of structures with similarities. It is only useful for very large systems.
 
--u makes the ZZPolyCalc read the XYZ specification without any modifications. By default, the code sorts the structure by z, y, and
-x coordinates, respectively that usually makes the most optimal selection of order in the algorithm. 
+The -s option sets the number of buckets in the cache database. A larger number slightly increases the speed of the program at the expense of more memory. If the database is smaller than the number of calculated structures, it is advisable that the database size is at least 50 times larger than the number of buckets.
 
--v prints some additionally diagnostics and prints progress 
+The -u option makes ZZPolyCalc read the XYZ file without any modifications. By default, the code sorts the structure by z, y, and x coordinates, respectively, which usually allows the most optimal selection of order for the algorithm.
+
+The -v option enables additional diagnostics and progress printing.
+
+
