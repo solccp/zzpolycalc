@@ -21,6 +21,14 @@ program zhang_polynomial
   logical :: cacheexists
   character(len=200) :: input_fname
 
+
+! ############################################################
+! # read initial geometry data and create topological matrix #
+! ############################################################
+
+  call initialize_options() 
+  call read_options(input_fname)
+
 if (verbose) then
 #ifdef USE_XXHASH
   write(*,*)'xxhash used'
@@ -33,13 +41,9 @@ if (verbose) then
 #endif
 end if
 
-! ############################################################
-! # read initial geometry data and create topological matrix #
-! ############################################################
-
-  call initialize_options() 
-  call read_options(input_fname)
   if (verbose) call print_options()
+
+
   call read_input(input_fname,pah)
 
   
