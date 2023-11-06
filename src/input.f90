@@ -129,15 +129,6 @@ subroutine read_input(input_fname,pah)
     
     close(20)
   
-    open(22,file='neighborlist')
-
-  write(22,*)cnat
-  do i=1,cnat
-    write(22,'(4(I0,2x))')i,(pah%neighborlist(k,i),k=1,3)
-  end do
-
-  close(22)
-
   if (.not. is_adjacencyfile) then
 ! ################################################
 ! # construct Schlegel diagram for the fullerene #
