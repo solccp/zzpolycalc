@@ -39,6 +39,7 @@ use, intrinsic :: iso_c_binding
   integer(int64) :: nstruct = 0
   integer(int64) :: nstructall = 0
   integer(int64) :: nstructseen = 0
+  integer(int64) :: ncachebytes = 0
   type,public :: neigh
      integer(C_signed_char), pointer :: nlist(:)     
      integer(int16) :: order
@@ -94,9 +95,9 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
   if (.not. present(duringread)) then ! only print in main calculation not when reading cache.bin
     nstructall=nstructall+1
-    if (mod(nstructall,1000000).eq.0)  then
+    if (mod(nstructall,100000).eq.0)  then
       call system_mem_usage(mem)
-      if (verbose) write(*,*)'nstruct',nstructall,nstruct,'mem',mem
+      if (verbose) write(*,'(A,2I,A,2I)')'nstruct',nstructall,nstruct,' mem',mem,ncachebytes
     end if 
   end if
 
@@ -184,6 +185,10 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
     xlen(idx1)=xlen(idx1)+1
     nstruct=nstruct+1
+    ncachebytes=ncachebytes+8*2+2*2+4+8+hashsize+mpacksize*kint
+
+!    ncachebytes=ncachebytes+8+hashsize+2*2+4+8+4+8+mpacksize*kint
+!    ncachebytes=ncachebytes+mpacksize*kint
     if (nstruct.eq.maxrecords .and. verbose) write(*,*)'Max records',nstruct,' achieved' 
 else ! replace
 
@@ -207,6 +212,8 @@ end do
   end do
  
   mpacksize=getpackedsize(poly,order+1)
+  ncachebytes=ncachebytes+(mpacksize-x(idx1)%p(j)%mpacksize)*kint
+
   if (x(idx1)%p(j)%order .ne. order .or. x(idx1)%p(j)%mpacksize .ne. mpacksize) then
      deallocate(x(idx1)%p(j)%packedpolynomial) 
      allocate(x(idx1)%p(j)%packedpolynomial(mpacksize))
@@ -280,13 +287,17 @@ implicit none
       write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,(x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize)
       write(24,*)x(idx1)%p(i)%nat,x(idx1)%p(i)%iseen,x(idx1)%p(i)%order
       write(23)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
+
+
+!      write(*,*)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
+
 !      call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
       do j=1,x(idx1)%p(i)%order+1
 !        if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
       end do
     end do
   end do
-  if (verbose) write (*,*)'cache saved'
+  if (verbose) write (*,*)'cache saved',ncachebytes+12,'bytes'
 !  write(*,*)'Max large integer size: ',leadpowmax
   close(23)
   close(24)
@@ -365,6 +376,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   if (firstrun) then
     allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
     firstrun=.false.
+!    ncachebytes = nbuckets*(8+2*kint)
     xlen=0
   end if
 
