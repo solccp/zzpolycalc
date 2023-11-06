@@ -297,7 +297,7 @@ implicit none
       end do
     end do
   end do
-  if (verbose) write (*,*)'cache saved',ncachebytes+12,'bytes'
+  if (verbose) write (*,*)'cache saved',ncachebytes+20,'bytes'
 !  write(*,*)'Max large integer size: ',leadpowmax
   close(23)
   close(24)
