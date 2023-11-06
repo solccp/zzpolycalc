@@ -74,13 +74,14 @@ end if
   endif
   if (verbose) write(*,'(a,3i)')'Seen Unique Remembered',nstructseen,nstructall,nstruct
   notused=0
-  do i=1,nbuckets
-    do j=1,xlen(i)
+  if (allocated(xlen)) then
+    do i=1,nbuckets
+      do j=1,xlen(i)
 !      write(*,*)'iseen',i,j,x(i)%p(j)%iseen
-       if (x(i)%p(j)%iseen .gt. 0) notused=notused+1
+         if (x(i)%p(j)%iseen .gt. 0) notused=notused+1
+      end do
     end do
-  end do
-
+  end if
   if (verbose) write(*,'(a,i)')'Not used:',notused
   if (has_write_cache_file) then
     call writetodisk(write_cache_fname)
