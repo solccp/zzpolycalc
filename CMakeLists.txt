@@ -8,29 +8,45 @@ cmake_minimum_required(VERSION 2.6)
  
 #macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
 
-option(USE_SHA256 "enable SHA256" ON)
+option(USE_SHA256 "enable SHA256" OFF)
 
-find_path(XXHASH_INCLUDE_DIR NAMES xxhash.h)
-if(NOT XXHASH_INCLUDE_DIR)
-  message(WARNING "Didn't find xxhash.h. Will use slower MD5")
-endif()
-  
-find_library(XXHASH_LIBRARY NAMES xxhash)
-if(NOT XXHASH_LIBRARY)
-    message(WARNING "Didn't find XXHASH library. Will use slower MD5")
+
+set(CMAKE_INSTALL_PREFIX .)
+
+#set( CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib" )
+#SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE) # do not strip non-standard libraries when make install
+
+if (USE_SHA256 STREQUAL ON)
     find_library(SSL_LIBRARY NAMES crypto)
     if(SSL_LIBRARY)
-      message("Found libcrypto. Will use this SSL library")
+      message("Found libcrypto. Will use this SSL library for SHA256")
+    else()
+      message("FATAL_ERROR libssl required for SHA256. Edit CMakeLists.txt and turn off SHA256 or specify SSL location via CMAKE_PREFIX_PATH")
     endif()
 else()
-   option(USE_XXHASH "enable XXHASH" ON)
+   find_path(XXHASH_INCLUDE_DIR NAMES xxhash.h)
+   if(NOT XXHASH_INCLUDE_DIR)
+     message(WARNING "Didn't find xxhash.h. Will use slower MD5")
+   endif()
+   find_library(XXHASH_LIBRARY NAMES xxhash)
+   if(NOT XXHASH_LIBRARY)
+     message(WARNING "Didn't find XXHASH library. Will use slower MD5")
+     find_library(SSL_LIBRARY NAMES crypto)
+     if(SSL_LIBRARY)
+       message("Found libcrypto. Will use this SSL library for MD5")
+     elseif (USE_SHA256 STREQUAL ON)
+       message("FATAL_ERROR libssl required for SHA256")
+      endif()
+  else()
+     message("Will use XXHASH128")
+     option(USE_XXHASH "enable XXHASH" ON)
+  endif()
 endif()
 
 
     
-set(CMAKE_INSTALL_PREFIX .)
+
 
 add_subdirectory(src)
-
 enable_testing()
 add_subdirectory(test)
