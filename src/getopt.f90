@@ -140,7 +140,8 @@ end subroutine read_options
 subroutine print_usage()
     write(*, '(1x,a)') "Usage: ZZPolyCalc [options] input"
     write(*, '(1x,a)') "Options:"
-    write(*, '(1x,10a)') "    ", "-a", "                ",  "Specifies that the input file contains an adjacency matrix instead of XYZ format"
+    write(*, '(1x,10a)') "    ", "-a", "                ",  &
+                                "Specifies that the input file contains an adjacency matrix instead of XYZ format"
     write(*, '(1x,10a)') "    ", "-m number", "         ",  "Sets the maximum {number} of structures in the cache database"
     write(*, '(1x,10a)') "    ", "-p", "                ",  "Prints intermediate bond-level structures"
     write(*, '(1x,10a)') "    ", "-Q", "                ",  "Print the ZZ polynomial in XML format"

@@ -12,12 +12,12 @@ recursive subroutine decompose(pah,level,path)
   use options_module
   
   implicit none
-  integer(kint) :: atom1,atom2,atom3,i,level,nelim,j,path
+  integer(kint) :: atom1,atom2,atom3,level,nelim,path
   integer(kint),dimension(6) :: sextet1,sextet2
   integer(kint),dimension(2) :: atoms
   type(structure),intent(inout) :: pah
   type(structure) :: bond,corners,ring1,ring2
-  logical :: ring1_exists,ring2_exists,are_neighbors
+  logical :: ring1_exists,ring2_exists
 
 ! #############################################
 ! # select an edge bond between atom1 & atom2 #

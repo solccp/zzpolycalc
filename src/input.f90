@@ -8,19 +8,16 @@ subroutine read_input(input_fname,pah)
   use types_module
   use options_module
   implicit none
-  integer(kind=4) :: info
-  integer(kint) :: cnat=0,status,bnat,i,j,k,nhex,l,m,errorcode,a1,a2
-  integer(kint),allocatable,dimension(:,:) :: lista
+  integer(kint) :: cnat=0,bnat,i,j,k,errorcode,a1,a2
   integer(kint),allocatable,dimension(:,:) :: localbondlist
   character(len=200) :: atname
   real(kreal),parameter :: ccdist=1.7d0
-  real(kreal) :: inertia(3,3),eival(3),work(100)
   real(kreal),allocatable,dimension(:,:) :: geom
   integer(kint),allocatable,dimension(:) :: map
   real(kreal),dimension(3) :: x
   real(kreal) :: dist
   type(structure), intent(inout) :: pah
-  logical :: inlist,bondfileexists,adjexists
+  logical :: bondfileexists
   character(len=*), intent(in) :: input_fname
 
 !connection table
@@ -136,7 +133,7 @@ subroutine read_input(input_fname,pah)
 
   write(22,*)cnat
   do i=1,cnat
-    write(22,'(4(I,2x))')i,(pah%neighborlist(k,i),k=1,3)
+    write(22,'(4(I0,2x))')i,(pah%neighborlist(k,i),k=1,3)
   end do
 
   close(22)

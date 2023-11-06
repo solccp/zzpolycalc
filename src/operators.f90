@@ -8,7 +8,7 @@ recursive subroutine cut_dangling_bonds(pah)
 !
   use types_module
   implicit none
-  integer(kint) :: atom1,atom2, atom3, atom4,i,j,k,m,nelim
+  integer(kint) :: atom1,atom2, atom3, atom4,i,j,k,nelim
   integer(kint),dimension(maxatoms) :: atoms
   type(structure) :: pah,pah1
   logical :: has_dangling_bonds
@@ -161,7 +161,7 @@ subroutine find_pentagon(pah,pentagon,atom1,atom2,atom3,ring_exists)
 !
   use types_module
   implicit none
-  integer(kint) :: i,j,k,l
+  integer(kint) :: i,j,l
   integer(kint) :: atom1,atom2,atom3,atom4,atom5
   integer(kint),dimension(5) :: pentagon
   type(structure) :: pah

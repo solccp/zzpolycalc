@@ -74,15 +74,13 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   integer(int16) :: asmall(3,nat)
   integer(kint), intent(in) :: order
   type(vlonginteger), intent(in) :: poly(order+1)
-  type(vlonginteger) :: polytmp
-  type(ptrneigh),pointer :: curr
   type(ptrneigh), target :: xtmp
   logical :: first
   type(neigh), allocatable :: ptmp(:)
-  integer(int64) :: ipack,idx2l,idx1l
+  integer(int64) :: idx1l
   real(8)        :: highscore,score
-  character(len=1) :: buf (3*nat*2),buf2
-  integer :: i,j,ilen,idx2,idx1,ihighscore
+  character(len=1) :: buf (3*nat*2)
+  integer :: i,j,ilen,idx1,ihighscore
   integer(C_signed_char) :: hashsum(hashsize)
   integer(C_signed_char),OPTIONAL :: hashseen(hashsize)
   integer(kint),OPTIONAL :: iseen
@@ -90,14 +88,14 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   logical,OPTIONAL :: duringread
 
   logical :: replace
-  integer :: mem,ires
+  integer :: mem
   integer :: mpacksize
 
   if (.not. present(duringread)) then ! only print in main calculation not when reading cache.bin
     nstructall=nstructall+1
-    if (mod(nstructall,100000).eq.0)  then
+    if (mod(nstructall,100000_int64).eq.0)  then
       call system_mem_usage(mem)
-      if (verbose) write(*,'(A,2I,A,2I)')'nstruct',nstructall,nstruct,' mem',mem,ncachebytes
+      if (verbose) write(*,'(A,2I0,A,2I0)')'nstruct',nstructall,nstruct,' mem',mem,ncachebytes
     end if 
   end if
 
@@ -118,7 +116,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   end if
   idx1l=transfer(hashsum,idx1l)
 
-  idx1=mod(idx1l,nbuckets)
+  idx1=mod(idx1l,transfer(nbuckets,idx1l))
   idx1=iabs(idx1)+1
 
 
@@ -257,14 +255,9 @@ subroutine writetodisk(fname)
 use hash_module
 use options_module
 implicit none
-  type(ptrneigh),pointer :: curr
   type(ptrneigh), target :: xtmp
   logical :: first
-  integer(int64) :: ipack,idx2l,idx1l
-  real(8)        :: highscore,score
-  integer :: i,j,ilen,idx2,idx1,ihighscore,ibuf
-  integer(C_signed_char) :: hashsum(hashsize)
-  integer(kint) :: leadpowmax=0
+  integer :: i,j,ilen,idx1,ibuf
   character(len=*), intent(in) :: fname
 
   open(23,file=trim(fname),FORM='UNFORMATTED')
@@ -275,7 +268,6 @@ implicit none
 
   do idx1=1,nbuckets
     xtmp=x(idx1)
-!    curr=>xtmp
     if (allocated(x(idx1)%p)) then 
        first=.false.
        ilen=xlen(idx1)
@@ -284,7 +276,8 @@ implicit none
        ilen=0
     end if
     do i=1,ilen
-      write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,(x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize)
+      write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,&
+               (x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize)
       write(24,*)x(idx1)%p(i)%nat,x(idx1)%p(i)%iseen,x(idx1)%p(i)%order
       write(23)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
 
@@ -361,15 +354,13 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   integer(kint), intent(out) :: order
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
   logical :: seen
-  integer :: i,j,k,idx2,idx1
+  integer :: i,j,idx1
   type(ptrneigh),pointer :: curr
   type(neigh), pointer :: match
   type(ptrneigh), target :: xtmp
-  integer(int64) :: idx2l,idx1l
-  character(len=1) :: buf (3*nat*2),buf2
+  integer(int64) :: idx1l
+  character(len=1) :: buf (3*nat*2)
   integer(C_signed_char) :: hashsum(hashsize)
-  type(neigh) :: temp
-  integer(int64), pointer :: temp2
 
   nstructseen = nstructseen + 1
 
@@ -395,7 +386,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
 
 
 
-  idx1=mod(idx1l,nbuckets)
+  idx1=mod(idx1l,transfer(nbuckets,idx1l))
   idx1=iabs(idx1)+1
 
 

@@ -10,7 +10,8 @@ use ISO_FORTRAN_ENV
   integer, parameter :: maxatoms = 50000
   integer, parameter :: vlongmax = 51
   integer, parameter :: vbasedigits = 9
-  integer, parameter :: vbase = 10**vbasedigits
+  integer(kind=kint), parameter :: vbase = 10**vbasedigits
+  integer(int64), parameter :: vbase64 = vbase
   integer, parameter :: maxpolylength = 450+6+vlongmax*vbasedigits+10
 
   type,public :: vlonginteger
@@ -41,7 +42,8 @@ contains
   function setvli(a) result(c)   
   implicit none
   integer(kint),intent(in) :: a
-  integer(kint) :: b,i
+  integer(kint) :: i
+  integer(kint) :: b
   type(vlonginteger) :: c
 
   c%tabl=0
@@ -65,10 +67,12 @@ contains
   implicit none
   type(vlonginteger),intent(in) :: a,b
   type(vlonginteger) :: c
-  integer(kint) :: i,val
+  integer(kint) :: i
+  integer(int64) :: val
 
   c%tabl=0
-  c%leadpow=max(a%leadpow,b%leadpow) ! this implies that the numbers must have tabl zeroed beyond leadpow. Otherwise corruption may happen. 
+! this implies that the numbers must have tabl zeroed beyond leadpow. Otherwise corruption may happen. 
+  c%leadpow=max(a%leadpow,b%leadpow) 
   do i=1,c%leadpow
     c%tabl(i)=c%tabl(i)+a%tabl(i)+b%tabl(i)
   end do
@@ -105,8 +109,8 @@ contains
     end do
   end do
   do i=1,min(vlongmax-1,a%leadpow+b%leadpow)
-    if (tmp(i) >= vbase) then
-      val=mod(tmp(i),vbase)
+    if (tmp(i) >= vbase64) then
+      val=mod(tmp(i),vbase64)
       tmp(i+1)=tmp(i+1)+(tmp(i)-val)/vbase
       tmp(i)=val
     end if
@@ -132,7 +136,7 @@ contains
   subroutine printvli(a)
   implicit none
   type(vlonginteger),intent(in) :: a
-  integer(kint) :: i,j,val
+  integer(kint) :: i
 
   if (a%leadpow == 0) then
     write(*,*)"0"
@@ -145,7 +149,7 @@ contains
   subroutine printvlinoadv(a)
   implicit none
   type(vlonginteger),intent(in) :: a
-  integer(kint) :: i,j,val
+  integer(kint) :: i
 
   if (a%leadpow == 0) then
     write(*,*)"0"
@@ -235,8 +239,8 @@ contains
 
   function getmaxpow(a,n) result(maxpow)
     implicit none
-    type(vlonginteger),intent(in) :: a(n)
     integer(kint),intent(in) :: n
+    type(vlonginteger),intent(in) :: a(n)
     integer(kint) :: i,maxpow
     maxpow=0
     do i=1,n
@@ -246,9 +250,9 @@ contains
  
   subroutine packvliarray(a,res,n,mpow)
     implicit none
+    integer(kint),intent(in) :: n,mpow
     type(vlonginteger),intent(in) :: a(n)
     integer(kint),intent(out) :: res(mpow,n)
-    integer(kint),intent(in) :: n,mpow
     integer(kint) :: i,j
     
     do i=1,n
@@ -260,9 +264,9 @@ contains
 
   subroutine unpackvliarray(res,a,n,mpow)
     implicit none
+    integer(kint),intent(in) :: n,mpow
     type(vlonginteger),intent(out) :: a(n)
     integer(kint),intent(in) :: res(mpow,n)
-    integer(kint),intent(in) :: n,mpow
     integer(kint) :: i,j
     
     do i=1,n
@@ -279,8 +283,8 @@ contains
 
 function getpackedsize(a,n) result(m)
     implicit none
-    type(vlonginteger),intent(in) :: a(n)
     integer(kint),intent(in) :: n
+    type(vlonginteger),intent(in) :: a(n)
     integer(kint) :: i,m
     m=0
     do i=1,n
@@ -291,9 +295,9 @@ function getpackedsize(a,n) result(m)
 
   subroutine packvliarray2(a,res,n,nres)
     implicit none
+    integer(kint),intent(in) :: n,nres
     type(vlonginteger),intent(in) :: a(n)
     integer(kint),intent(out) :: res(nres)
-    integer(kint),intent(in) :: n,nres
     integer(kint) :: i,j,k,npow
     
     k=0
@@ -311,9 +315,9 @@ function getpackedsize(a,n) result(m)
 
   subroutine unpackvliarray2(res,a,n,nres)
     implicit none
+    integer(kint),intent(in) :: n,nres
     type(vlonginteger),intent(out) :: a(n)
     integer(kint),intent(in) :: res(nres)
-    integer(kint),intent(in) :: n,nres
     integer(kint) :: i,j,k,npow
     
     do i=1,n

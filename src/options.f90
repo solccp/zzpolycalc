@@ -33,12 +33,12 @@ contains
   end subroutine
   subroutine print_options()
     use types_module
-!    write(*,'(a,i)')'chunksize',chunksize
-    write(*,'(a,i)')'nbuckets',nbuckets
-    write(*,'(a,i)')'maxrecords',maxrecords
+!    write(*,'(a,i0)')'chunksize',chunksize
+    write(*,'(a,i0)')'nbuckets',nbuckets
+    write(*,'(a,i0)')'maxrecords',maxrecords
     if (has_read_cache_file) write(*,'(a,a)')'Read cache from:  ',trim(read_cache_fname)
     if (has_write_cache_file) write(*,'(a,a)')'Write cache to:  ',trim(write_cache_fname)
-    write(*,'(a,i)')'vlongmax',vlongmax
+    write(*,'(a,i0)')'vlongmax',vlongmax
     if (is_adjacencyfile) write(*,*)'Input file is adjacency matrix'
     if (unsorted_geometry) write(*,*)'Unmodified geometry used' 
     if (read_connection_table) write(*,*)'Connection table read from the bottom of the xyz file'

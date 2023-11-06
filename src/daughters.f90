@@ -67,8 +67,8 @@ recursive subroutine create_noatoms_daughter(pah,pah1,nelim,delatoms)
 ! 
   use types_module
   implicit none
-  integer(kint):: delatoms(nelim)
   integer(kint) :: j,i,k,l,m,nelim
+  integer(kint):: delatoms(nelim)
   integer(kint),dimension(maxatoms) :: map
   type(structure) :: pah,pah1
   logical,dimension(maxatoms) :: offlist

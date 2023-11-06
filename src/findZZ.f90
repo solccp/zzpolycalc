@@ -9,7 +9,6 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
   implicit none
   integer(kint) :: medat,level,path
   type(structure) :: pah
-  integer i,j
   logical :: seen
 
 !   write(*,*)'Level',level,pah%nat,pah%order

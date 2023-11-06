@@ -9,13 +9,13 @@ subroutine schlegel_diagram(nat,pah,geom)
 !
   use types_module
   implicit none
-  integer(kint) :: nat,i,j,k,npent,l,m
+  integer(kint) :: nat,i,j,k,npent,l
   integer(kint),allocatable,dimension(:,:) :: lista5
-  real(kreal) :: cpnorm,proj,umost,dmost,rmost,lmost,xscal,yscal
+  real(kreal) :: cpnorm,umost,dmost,rmost,lmost,xscal,yscal
   real(kreal),dimension(3,nat) :: geom
   real(kreal),allocatable,dimension(:,:) :: geom1,xyst
   real(kreal),allocatable,dimension(:) :: theta,phi
-  real(kreal),dimension(3) :: x,tpmap,xv,yv,cp,cm
+  real(kreal),dimension(3) :: tpmap,xv,yv,cp,cm
   type(structure) :: pah
   character(len = 6) :: ftitle
 

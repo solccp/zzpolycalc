@@ -15,8 +15,7 @@ program zhang_polynomial
   use options_module
   use getopt_module
   implicit none
-  integer(kint) :: i,nhex,level=0,j,notused
-  integer(kint),allocatable,dimension(:,:) :: lista
+  integer(kint) :: i,level=0,j,notused
   type(structure) :: pah
   logical :: cacheexists
   character(len=200) :: input_fname
@@ -72,7 +71,7 @@ end if
   else
     call print_ZZ_polynomial(pah)
   endif
-  if (verbose) write(*,'(a,3i)')'Seen Unique Remembered',nstructseen,nstructall,nstruct
+  if (verbose) write(*,'(a,3i0)')'Seen Unique Remembered',nstructseen,nstructall,nstruct
   notused=0
   if (allocated(xlen)) then
     do i=1,nbuckets
@@ -82,7 +81,7 @@ end if
       end do
     end do
   end if
-  if (verbose) write(*,'(a,i)')'Not used:',notused
+  if (verbose) write(*,'(a,i0)')'Not used:',notused
   if (has_write_cache_file) then
     call writetodisk(write_cache_fname)
   end if
