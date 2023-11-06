@@ -21,8 +21,12 @@ subroutine read_input(input_fname,pah)
   real(kreal) :: dist
   type(structure), intent(inout) :: pah
   logical :: inlist,bondfileexists,adjexists
+  character(len=*), intent(in) :: input_fname
 
-   character(len=*), intent(in) :: input_fname
+!connection table
+  integer :: nConnection
+  integer :: con1, con2
+
 
 
   if (is_adjacencyfile) then
@@ -48,7 +52,6 @@ subroutine read_input(input_fname,pah)
         end do
       end if
     end do
-    close(20)
     if (.not. unsorted_geometry) call sort(geom,cnat)
   end if ! is_adjacency_file
 
@@ -98,22 +101,36 @@ subroutine read_input(input_fname,pah)
         if (pah%neighborlist(k,cnat).eq.0) pah%neighbornumber(cnat)=pah%neighbornumber(cnat)-1
     end do
 
-  else
+  elseif (.not. read_connection_table ) then
 ! #######################
 ! # find neighbor table #
 ! #######################
-    do i=1,cnat
-      pah%initiallabel(i)=i
-      do j=i+1,cnat
-        if (dist(cnat,i,j,geom) < ccdist) then
-          pah%neighbornumber(i)=pah%neighbornumber(i)+1
-          pah%neighborlist(pah%neighbornumber(i),i)=j
-          pah%neighbornumber(j)=pah%neighbornumber(j)+1
-          pah%neighborlist(pah%neighbornumber(j),j)=i
-        end if
+      do i=1,cnat
+        pah%initiallabel(i)=i
+        do j=i+1,cnat
+          if (dist(cnat,i,j,geom) < ccdist) then
+            pah%neighbornumber(i)=pah%neighbornumber(i)+1
+            pah%neighborlist(pah%neighbornumber(i),i)=j
+            pah%neighbornumber(j)=pah%neighbornumber(j)+1
+            pah%neighborlist(pah%neighbornumber(j),j)=i
+          end if
+        end do
       end do
-    end do
-  end if
+    else
+        nConnection = 0
+        read (20, *) nConnection
+        do i=1, nConnection
+            read (20,*) con1, con2
+            if (dist(cnat,con1,con2,geom) < ccdist) then
+                pah%neighbornumber(con1)=pah%neighbornumber(con1)+1
+                pah%neighborlist(pah%neighbornumber(con1),con1)=con2
+                pah%neighbornumber(con2)=pah%neighbornumber(con2)+1
+                pah%neighborlist(pah%neighbornumber(con2),con2)=con1
+            end if
+        end do
+    end if
+    
+    close(20)
   
     open(22,file='neighborlist')
 

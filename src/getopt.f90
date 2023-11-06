@@ -76,7 +76,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('ham:pQr:s:uvw:')
+        okey = getopt('ham:pQr:s:uvw:X')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -117,6 +117,11 @@ subroutine read_options(input_fname)
         if(okey == 'w') then
             read(optarg, '(a)') write_cache_fname
             has_write_cache_file = .true. 
+        end if
+
+        if(okey == 'X') then
+            read_connection_table = .true.
+            unsorted_geometry = .true. ! connection table would not work if geometry is sorted
         end if
 
 

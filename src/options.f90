@@ -15,6 +15,7 @@ module options_module
   logical :: print_XML
   logical :: verbose
   logical :: unsorted_geometry
+  logical :: read_connection_table
 contains
   subroutine initialize_options()
     chunksize = 1
@@ -28,6 +29,7 @@ contains
     unsorted_geometry = .false. 
     has_read_cache_file = .false.
     has_write_cache_file = .false. 
+    read_connection_table = .false. 
   end subroutine
   subroutine print_options()
     use types_module
@@ -37,6 +39,9 @@ contains
     if (has_read_cache_file) write(*,'(a,a)')'Read cache from:  ',trim(read_cache_fname)
     if (has_write_cache_file) write(*,'(a,a)')'Write cache to:  ',trim(write_cache_fname)
     write(*,'(a,i)')'vlongmax',vlongmax
+    if (is_adjacencyfile) write(*,*)'Input file is adjacency matrix'
+    if (unsorted_geometry) write(*,*)'Unmodified geometry used' 
+    if (read_connection_table) write(*,*)'Connection table read from the bottom of the xyz file'
   end subroutine print_options   
     
     
