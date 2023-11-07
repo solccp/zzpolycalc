@@ -7,7 +7,7 @@ use ISO_FORTRAN_ENV
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 65535 ! do not increase the limit without modifying the code that uses 2-byte integers 
-  integer, parameter :: vlongmax = 51
+  integer, parameter :: vlongmax = 100
   integer, parameter :: vbasedigits = 9
   integer(kind=kint), parameter :: vbase = 10**vbasedigits
   integer(int64), parameter :: vbase64 = vbase

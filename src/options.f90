@@ -19,9 +19,9 @@ module options_module
 contains
   subroutine initialize_options()
     chunksize = 1
-    nbuckets = 2097152
+    nbuckets = 1000000
     writemark =   200000000
-    maxrecords =  52000000
+    maxrecords =  20000000
     is_adjacencyfile = .false.
     print_bondlevel = .false.
     print_XML = .false. 
