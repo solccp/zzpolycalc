@@ -1,3 +1,20 @@
+if (NOT DEFINED CC)
+  find_program (INTEL_C_COMPILER icc)
+  if (INTEL_C_COMPILER)
+    find_program(CMAKE_C_COMPILER NAMES $ENV{CC} icc PATHS ENV PATH NO_DEFAULT_PATH)
+  endif()
+  find_program(CMAKE_C_COMPILER NAMES $ENV{CC} gcc PATHS ENV PATH NO_DEFAULT_PATH)
+endif()
+if (NOT DEFINED FC)
+  find_program (INTEL_FORTRAN_COMPILER ifort)
+  if (INTEL_FORTRAN_COMPILER)
+    find_program(CMAKE_Fortran_COMPILER NAMES $ENV{FC} ifort PATHS ENV PATH NO_DEFAULT_PATH)
+  else()
+    find_program(CMAKE_Fortran_COMPILER NAMES $ENV{FC} gfortran PATHS ENV PATH NO_DEFAULT_PATH)
+  endif()
+endif()
+
+
 # Project name is not mandatory, but you should use it
 project(ZZPolyCalc Fortran C)
 
@@ -9,6 +26,9 @@ cmake_minimum_required(VERSION 2.6)
 #macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
 
 option(USE_SHA256 "enable SHA256" OFF)
+
+
+
 
 
 set(CMAKE_INSTALL_PREFIX .)
