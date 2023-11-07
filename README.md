@@ -1,8 +1,9 @@
 ZZPolyCalc: An Open-Source Code with Structure Caching for the Determination of Zhang-Zhang Polynomials of Carbon Nanostructures
 
-ZZPolyCalc computes Zhang-Zhang polynomials for carbon nanostructures. This code is an improved version of the non-cached ZZCalculator (<https://github.com/solccp/zzcalculator>). It retains most of the ZZCalculator's options, significantly enhances speed due to caching, and adds support for five-membered rings.
+ZZPolyCalc computes Zhang-Zhang polynomials for carbon nanostructures. This code is an improved version of the 
+[non-cached ZZCalculator](https://github.com/solccp/zzcalculator). It retains most of the ZZCalculator's options, significantly enhances speed due to caching, and adds support for five-membered rings.
 
-ZZPolyCalc is released under the GNU General Public License ver. 3. Please consult the included `LICENSE <LICENSE>`_ file for detailed licensing conditions.
+ZZPolyCalc is released under the GNU General Public License ver. 3. Please consult the included [LICENSE](LICENSE) file for detailed licensing conditions.
 
 Installation Requirements
 =========================
@@ -14,7 +15,7 @@ Installation Requirements
 Additionally, though optional, the following are recommended:
 
 * CMake (version 2.8 or newer)
-* `xxHash <https://github.com/Cyan4973/xxHash> library`_ for the XXH128 hash
+* [xxHash library](https://github.com/Cyan4973/xxHash) library for the XXH128 hash
 
 or
 
@@ -36,9 +37,9 @@ cd zzpolycalc
 Building
 ========
 
-# It is recommended to use CMake.
+It is recommended to use CMake.
 
-# To compile the code:
+## To compile the code:
 
 ```bash
     mkdir build
@@ -51,19 +52,19 @@ Building
 
 The code will be installed in bin/ZZPolyCalc.
 
-# To change the compiler:
+## To change the compiler:
 
 ```bash
     CC=icc FC=ifort cmake ..
 ```
 
-# To specify a non-standard location of libraries:
+## To specify a non-standard location of libraries:
 
 ```bash
     CC=icc FC=ifort CMAKE_PREFIX_PATH=/path/to/xxHash cmake ..
 ```
 
-# Alternatively, the code can be compiled by simply issuing:
+## Alternatively, the code can be compiled by simply issuing:
 
 ```bash
     make
@@ -131,15 +132,6 @@ The -u option makes ZZPolyCalc read the XYZ file without any modifications. By d
 
 The -v option enables additional diagnostics and progress printing.
 
-The -X option makes the ZZPolyCalc skip the default generation of the connectivity tables and reads connection table from the bottom of the XYZ file. 
-This option is for compatibility with ZZCalculator. The format of the connection tables is
-
-  number_of_bonds
-  atom1 atom2
-  ...
-
-where atom numbers represent the numbers of atoms connected via bond. This option automatically selects -u option. The bond list impacts the path of
-the ZZ polymial calculation algorithm and can dramatically change the compute time. 
 
 The -X option causes ZZPolyCalc to bypass the default generation of connectivity tables and instead read a connectivity table appended to the bottom of the XYZ file. This feature ensures compatibility with ZZCalculator. The format of the connectivity tables is as follows:
 
