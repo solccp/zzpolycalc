@@ -40,21 +40,21 @@ use, intrinsic :: iso_c_binding
   integer(int64) :: nstructall = 0
   integer(int64) :: nstructseen = 0
   integer(int64) :: ncachebytes = 0
-  type,public :: neigh
-     integer(C_signed_char), pointer :: nlist(:)     
+  type,public :: cachedstructure
+     integer(C_signed_char), pointer :: hash(:)     
      integer(int16) :: order
      integer(int16) :: nat
      integer(kint) :: iseen
      integer(int64) :: lastseen
      integer(kint) :: mpacksize
      integer(kint),pointer :: packedpolynomial(:)
-  end type neigh
+  end type cachedstructure
 
-  type ptrneigh
-  type(neigh), allocatable :: p(:)
-  end type ptrneigh
+  type ptrcachedstructure
+  type(cachedstructure), allocatable :: p(:)
+  end type ptrcachedstructure
 
-  type(ptrneigh),allocatable :: x(:)
+  type(ptrcachedstructure),allocatable :: x(:)
   integer(kint),allocatable :: xlen(:)
   integer(kint),allocatable :: irepl(:)
   interface
@@ -62,7 +62,7 @@ use, intrinsic :: iso_c_binding
 
 
 contains 
-subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
+subroutine add_cachedstructure(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   use hash_module
   use options_module
   use types_module
@@ -73,9 +73,9 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   integer(int16) :: asmall(3,nat)
   integer(kint), intent(in) :: order
   type(vlonginteger), intent(in) :: poly(order+1)
-  type(ptrneigh), target :: xtmp
+  type(ptrcachedstructure), target :: xtmp
   logical :: first
-  type(neigh), allocatable :: ptmp(:)
+  type(cachedstructure), allocatable :: ptmp(:)
   integer(int64) :: idx1l
   real(8)        :: highscore,score
   character(len=1) :: buf (3*nat*2)
@@ -147,12 +147,12 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
       allocate(x(idx1)%p(ilen+chunksize))
     end if
    
-    allocate(x(idx1)%p(ilen+1)%nlist(hashsize))
+    allocate(x(idx1)%p(ilen+1)%hash(hashsize))
     
     
 
     do i=1,hashsize
-      x(idx1)%p(ilen+1)%nlist(i)=hashsum(i)
+      x(idx1)%p(ilen+1)%hash(i)=hashsum(i)
     end do
     x(idx1)%p(ilen+1)%order=order
     if (.not.present(iseen)) then 
@@ -195,7 +195,7 @@ do j=1,xlen(idx1)
 end do
   j=ihighscore
   do i=1,hashsize
-      x(idx1)%p(j)%nlist(i)=hashsum(i)
+      x(idx1)%p(j)%hash(i)=hashsum(i)
   end do
  
   mpacksize=getpackedsize(poly,order+1)
@@ -226,14 +226,14 @@ end if
    end if
   end if
 
-end subroutine add_neigh
+end subroutine add_cachedstructure
 
 
 subroutine writetodisk(fname)
 use hash_module
 use options_module
 implicit none
-  type(ptrneigh), target :: xtmp
+  type(ptrcachedstructure), target :: xtmp
   logical :: first
   integer :: i,j,ilen,idx1,ibuf
   character(len=*), intent(in) :: fname
@@ -252,7 +252,7 @@ implicit none
     end if
     do i=1,ilen
       write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,&
-               (x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize) !&
+               (x(idx1)%p(i)%hash(ibuf),ibuf=1,hashsize) !&
       write(23)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
 
     end do
@@ -299,7 +299,7 @@ implicit none
    order32=order
    nat32=nat
    call readfromfile(23,poly,order32+1)
-   call add_neigh(nat32,nbnum,a,order32,poly,hashsum,iseen,lastseen,.true.)
+   call add_cachedstructure(nat32,nbnum,a,order32,poly,hashsum,iseen,lastseen,.true.)
    deallocate(poly)
   end if
   end do
@@ -320,9 +320,9 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   type(vlonginteger), allocatable,intent(out) :: poly(:)  
   logical :: seen
   integer :: i,j,idx1
-  type(ptrneigh),pointer :: curr
-  type(neigh), pointer :: match
-  type(ptrneigh), target :: xtmp
+  type(ptrcachedstructure),pointer :: curr
+  type(cachedstructure), pointer :: match
+  type(ptrcachedstructure), target :: xtmp
   integer(int64) :: idx1l
   character(len=1) :: buf (3*nat*2)
   integer(C_signed_char) :: hashsum(hashsize)
@@ -359,7 +359,7 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   curr=>xtmp
   structloop:   do i=1,xlen(idx1)
     do j=1,hashsize
-        if (curr%p(i)%nlist(j).ne. hashsum(j)) then 
+        if (curr%p(i)%hash(j).ne. hashsum(j)) then 
           cycle structloop
         end if
       if (j.eq.hashsize) then 

@@ -47,7 +47,7 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
     if (.not. seen) then
       call decompose(pah,level,path)
 
-      call add_neigh(pah%nat,pah%neighbornumber,pah%neighborlist,pah%order,pah%polynomial)
+      call add_cachedstructure(pah%nat,pah%neighbornumber,pah%neighborlist,pah%order,pah%polynomial)
     end if
 
 
