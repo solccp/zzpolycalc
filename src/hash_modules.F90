@@ -240,9 +240,6 @@ implicit none
 
   open(23,file=trim(fname),FORM='UNFORMATTED')
   write(23)vlongmax,nstructall
-  open(24,file='cache.txt',FORM='FORMATTED')
-!  write(24)vlongmax,nstructall
-
 
   do idx1=1,nbuckets
     xtmp=x(idx1)
@@ -256,14 +253,12 @@ implicit none
     do i=1,ilen
       write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,&
                (x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize) !&
-      write(24,*)x(idx1)%p(i)%nat,x(idx1)%p(i)%iseen,x(idx1)%p(i)%order
       write(23)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
 
     end do
   end do
   if (verbose) write (*,*)'cache saved',ncachebytes+20,'bytes'
   close(23)
-  close(24)
 end subroutine writetodisk
 
 
