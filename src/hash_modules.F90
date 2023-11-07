@@ -116,7 +116,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   end if
   idx1l=transfer(hashsum,idx1l)
 
-  idx1=mod(idx1l,transfer(nbuckets,idx1l))
+  idx1=mod(int(idx1l,kind=kint),nbuckets)
   idx1=iabs(idx1)+1
 
 
@@ -385,8 +385,8 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   idx1l=transfer(hashsum,idx1l)
 
 
+  idx1=mod(int(idx1l, kind=kint),nbuckets)
 
-  idx1=mod(idx1l,transfer(nbuckets,idx1l))
   idx1=iabs(idx1)+1
 
 
