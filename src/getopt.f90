@@ -150,6 +150,7 @@ subroutine print_usage()
     write(*, '(1x,10a)') "    ", "-u", "                ",  "Uses unmodified input XYZ geometry (sorted by default)"
     write(*, '(1x,10a)') "    ", "-v", "                ",  "Enables verbose printing"
     write(*, '(1x,10a)') "    ", "-w file", "           ",  "Writes cached structures to a {file}"
+    write(*, '(1x,10a)') "    ", "-X", "                ",  "Reads connection table from the bottom of the XYZ file"
     write(*, '(1x,10a)') "    ", "-h", "                ",  "Displays this help message"
 end subroutine
 
