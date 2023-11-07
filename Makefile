@@ -3,46 +3,27 @@ OBJDIR := obj/
 MODDIR := obj/
 BINDIR := bin/
 
-FC := ifort
-CC := icc
-#FC := gfortran
-#CC := gcc
-#FFLAGS := -profile-functions -profile-loops=all -profile-loops-report=2  -ipo -O3 -funroll-loops -no-prec-div -module ${MODDIR} 
-#FFLAGS := -ipo -O3 -funroll-loops -no-prec-div -module ${MODDIR} 
-#FFLAGS := -g -debug -trace -ipo -O3 -funroll-loops -no-prec-div -module ${MODDIR} 
-#FFLAGS :=-ipo  -Ofast  -axSSE4.2,AVX,CORE-AVX2 -module ${MODDIR} 
-#FFLAGS :=-ipo  -Ofast  -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -no-prec-div -module ${MODDIR} 
-#FFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
-FFLAGS := -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
-#FFLAGS :=-profile-functions -profile-loops=all -profile-loops-report=2 -Ofast  -axSSE4.2,AVX,CORE-AVX2 -module ${MODDIR} 
-#FFLAGS := -g3 -O0 -module ${MODDIR} -fno-omit-frame-pointer -fasynchronous-unwind-tables -fexceptions -debug -trace -check all -debug all
+#FC := ifort
+#CC := icc
+FC := gfortran
+CC := gcc
 
-#FFLAGS := -O0 -g3 -module ${MODDIR} -stand f03  -debug all -trace  -assume realloc_lhs  -check all  -traceback  -warn all  -fstack-protector  -assume protect_parens  -implicitnone
+#ifort recommended flags
+#FFLAGS := -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2 -funroll-loops -module ${MODDIR} 
 
+FFLAGS := -g -O2  -J ${MODDIR}
 
+#CFLAGS := -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2
 
-#-check all -debug all
-#FFLAGS := -g3 -O0 -module ${MODDIR} -debug -trace
-#FFLAGS := -g3 -O0 -module ${MODDIR} -debug -trace -check all -debug all
+CFLAGS := -g -O2
 
-#CFLAGS = -ipo -O3 -funroll-loops -no-prec-div
-#CFLAGS :=-ipo  -Ofast -axSSE4.2,AVX,CORE-AVX2 
-#CFLAGS := -parallel -ipo -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2
-CFLAGS := -O3 -no-prec-div -static -fp-model fast=2 -axSSE4.2,AVX,CORE-AVX2
+LDFLAGS := -static 
 
-#CFLAGS :=-profile-functions -profile-loops=all -profile-loops-report=2 -Ofast -axSSE4.2,AVX,CORE-AVX2 
-#CFLAGS := -g3 -O0 
-#-debug -trace -check=stack,uninit -debug all
-
-
-LDFLAGS := -static  -lpthread -qopenmp
-# -debug all
-#LDFLAGS := -static -lmkl_em64t -lguide -lpthread
 
 COMMON_FILES :=  hash_modules
 PREPROC_FILES := zhang
 ZHANG_FILES := types_module input functions daughters findZZ polynomial decompose operators print hexagon schlegel options getopt sort
-C_FILES := md5 xxhashwrapper
+C_FILES := md5
 
 COMMON_SRCS := $(addsuffix .F90, ${COMMON_FILES})
 COMMON_SRCS := $(addprefix ${SRCDIR}, ${COMMON_SRCS})
@@ -76,13 +57,12 @@ SRCS := ${COMMON_SRCS} ${PREPROC_SRCS} ${ZHANG_SRCS} ${C_SRCS}
 all: zhang
 
 .PHONY: zhang
-zhang: ${BINDIR}zhangadjtmp
+zhang: ${BINDIR}ZZPolyCalc
 
 .PHONY: clean
 clean:
 	rm -f ${OBJDIR}*.o
 	rm -f ${MODDIR}*.mod
-	rm .depend
 
 .PHONY: mrproper
 mrproper: clean
@@ -90,22 +70,26 @@ mrproper: clean
 	rm -f ${SRCDIR}*~
 	rm -f *~
 
-${BINDIR}zhangadjtmp: ${ZHANG_OBJS} ${PREPROC_OBJS} ${COMMON_OBJS} ${C_OBJS}
+${BINDIR}ZZPolyCalc: ${ZHANG_OBJS} ${PREPROC_OBJS} ${COMMON_OBJS} ${C_OBJS}
 	@echo [LD] $@
-	@${FC} ${LDFLAGS} -o $@ $^  -L ~/ZZ/xxHash/ -l xxhash
+	@mkdir -p ${BINDIR}
+	@${FC} ${LDFLAGS} -o $@ $^ 
 
 ${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.f90
+	@mkdir -p $(@D)
 	@echo [FC] $<
 	@${FC} ${FFLAGS} -c -o $@ $<
 
 ${OBJDIR}%.o ${MODDIR}%.mod:${SRCDIR}%.F90
+	mkdir -p $(@D)
 	@echo [FC] $<
-	@${FC} ${FFLAGS} -c -o $@ $< -DUSE_XXHASH
+	@${FC} ${FFLAGS} -c -o $@ $< 
 
 
 ${OBJDIR}%.o :${SRCDIR}%.c
+	mkdir -p $(@D)
 	@echo [CC] $<
-	@${CC} ${CFLAGS} -c -o $@ $< -I ~/ZZ/xxHash
+	@${CC} ${CFLAGS} -c -o $@ $< 
 
 
 include .depend
@@ -113,5 +97,5 @@ include .depend
 .PHONY:	depend
 depend .depend: ${SRCS}
 	@echo Finding dependencies
-	@bin/makedepf90 -b ${OBJDIR} ${SRCS} > .depend
+#	@bin/makedepf90 -b ${OBJDIR} ${SRCS} > .depend
 
