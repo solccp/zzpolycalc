@@ -100,11 +100,6 @@ subroutine schlegel_diagram(nat,pah,geom)
     do j=1,3
       xv(j)=xv(j)-cp(j)*cpnorm
     end do
-!    proj=dsqrt(geom1(1,k)*geom1(1,k)+geom1(2,k)*geom1(2,k)+geom1(3,k)*geom1(3,k))    
-!    cpnorm=cp(1)*geom1(1,k)+cp(2)*geom1(2,k)+cp(3)*geom1(3,k)
-!    xv(1)=geom1(1,k)-cpnorm/proj*cp(1)    
-!    xv(2)=geom1(2,k)-cpnorm/proj*cp(2)    
-!    xv(3)=geom1(3,k)-cpnorm/proj*cp(3)    
     cpnorm=dsqrt(xv(1)*xv(1)+xv(2)*xv(2)+xv(3)*xv(3))
     do j=1,3
       yv(j)=xv(j)/cpnorm
@@ -159,16 +154,6 @@ subroutine schlegel_diagram(nat,pah,geom)
 !   ###########################################
 !   # update geometry of the leading pentagon #
 !   ###########################################
-!    xyst(1,lista5(4,i))=0.0
-!    xyst(2,lista5(4,i))=3.0
-!    xyst(1,lista5(5,i))=-3*0.951
-!    xyst(2,lista5(5,i))=3*0.309
-!    xyst(1,lista5(2,i))=-3*0.588
-!    xyst(2,lista5(2,i))=-3*0.809
-!    xyst(1,lista5(1,i))=3*0.588
-!    xyst(2,lista5(1,i))=-3*0.809
-!    xyst(1,lista5(3,i))=3*0.951
-!    xyst(2,lista5(3,i))=3*0.309
 
     do j=1,5
       call radial_neighbor(nat,pah,lista5,i,j,k)

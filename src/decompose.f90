@@ -39,12 +39,6 @@ recursive subroutine decompose(pah,level,path)
     atom3=pah%neighborlist(3,1)
     call find_aromatic_sextet(pah,sextet2,atom1,atom2,atom3,ring2_exists)
   end if
-!  if (ring1_exists) write(*,*)'Ring 1'
-!  if (ring2_exists) write(*,*)'Ring 2'
-
-!ring1_exists=.false.
-!ring2_exists=.false.
-
 
 ! ##################################
 ! # create the daughter structures #

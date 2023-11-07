@@ -74,7 +74,6 @@ subroutine print_ZZ_polynomial(pah)
   finalZZpolynomial=''
   cpos = 1
   call print_vli_in_string(cpos,finalZZpolynomial,total)
-!  write(*,'(1x,a,40i1)')"total: ",(total%tabl(i),i=total%leadpow,1,-1)
   write(*,'(1x,2a)')"total: ",trim(finalZZpolynomial)
 
   return

@@ -76,7 +76,6 @@ end if
   if (allocated(xlen)) then
     do i=1,nbuckets
       do j=1,xlen(i)
-!      write(*,*)'iseen',i,j,x(i)%p(j)%iseen
          if (x(i)%p(j)%iseen .gt. 0) notused=notused+1
       end do
     end do

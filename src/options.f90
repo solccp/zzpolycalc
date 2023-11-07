@@ -33,7 +33,6 @@ contains
   end subroutine
   subroutine print_options()
     use types_module
-!    write(*,'(a,i0)')'chunksize',chunksize
     write(*,'(a,i0)')'nbuckets',nbuckets
     write(*,'(a,i0)')'maxrecords',maxrecords
     if (has_read_cache_file) write(*,'(a,a)')'Read cache from:  ',trim(read_cache_fname)

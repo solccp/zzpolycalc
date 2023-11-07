@@ -4,7 +4,6 @@
 module types_module
 use ISO_FORTRAN_ENV
 
-!  integer, parameter :: kint = kind(0)
   integer, parameter :: kint = 4
   integer, parameter :: kreal = kind(0.0d0)
   integer, parameter :: maxatoms = 50000

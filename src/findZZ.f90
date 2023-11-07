@@ -2,7 +2,7 @@
 !####################################################################################
 recursive subroutine find_ZZ_polynomial(pah,level,path)
 ! 
-! find resursively the ZZ polynomial for the structure pah
+! find recursively the ZZ polynomial for the structure pah
 !
   use types_module
   use lookup_module_hash
@@ -18,7 +18,6 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
 ! # if pah contains 0 atoms #
 ! ###########################
   if (pah%nat == 0) then
-!    print*,"a"
     pah%order=0
     allocate(pah%polynomial(pah%order+1))
     pah%polynomial(1)=setvli(1)
@@ -27,7 +26,6 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
 ! # if pah contains an odd number of atoms #
 ! ##########################################
   else if (mod(pah%nat,2) == 1) then
-!    print*,"b"
     pah%order=0
     allocate(pah%polynomial(pah%order+1))
     pah%polynomial(1)=setvli(0)
@@ -36,11 +34,6 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
 ! # check if the graph of pah is connected #
 ! ##########################################
   else
-!    write(*,'(A)',advance='no')"S "   
-!   do i=1,pah%nat
-!     write(*,'(3I3)', advance='no')(pah%neighborlist(j,i),j=1,3)
-!   end do
-!   write(*,*)
 
     call check_if_connected(pah,medat)
 
@@ -50,7 +43,6 @@ recursive subroutine find_ZZ_polynomial(pah,level,path)
     if (medat == 0) then
 
     seen=check_seen(pah%nat,pah%neighbornumber,pah%neighborlist,pah%order,pah%polynomial)
-!    write(*,*)seen
 
     if (.not. seen) then
       call decompose(pah,level,path)

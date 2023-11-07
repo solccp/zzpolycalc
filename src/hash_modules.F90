@@ -63,7 +63,6 @@ use, intrinsic :: iso_c_binding
 
 contains 
 subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
-!  USE IFPORT ! for rename
   use hash_module
   use options_module
   use types_module
@@ -101,7 +100,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
 
 
   
-  asmall=0 ! fills outside of neighbornumber with zeroes
+  asmall=0 ! not used connections filled with zeroes
 
   if(.not. present(hashseen)) then
     do i=1,nat
@@ -141,7 +140,7 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
   if (.not. replace) then
 
     if (ilen>0) then 
-      if ( ilen == size(x(idx1)%p)) then ! no room needs enlarging
+      if ( ilen == size(x(idx1)%p)) then ! no room in current array, needs enlarging by chunksize
         allocate(ptmp(ilen+chunksize))
         ptmp(1:size(x(idx1)%p)) = x(idx1)%p
         call move_alloc(ptmp,x(idx1)%p)
@@ -176,17 +175,10 @@ subroutine add_neigh(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,duringread)
     
     call packvliarray2(poly,x(idx1)%p(ilen+1)%packedpolynomial,order+1,mpacksize)
   
-    
-!    do i=1,order+1
-!      call cpvli(poly(i),x(idx1)%p(ilen+1)%polynomial(i))
-!    end do
-
     xlen(idx1)=xlen(idx1)+1
     nstruct=nstruct+1
     ncachebytes=ncachebytes+8*2+2*2+4+8+hashsize+mpacksize*kint
 
-!    ncachebytes=ncachebytes+8+hashsize+2*2+4+8+4+8+mpacksize*kint
-!    ncachebytes=ncachebytes+mpacksize*kint
     if (nstruct.eq.maxrecords .and. verbose) write(*,*)'Max records',nstruct,' achieved' 
 else ! replace
 
@@ -198,7 +190,6 @@ do j=1,xlen(idx1)
   score=nstructall-x(idx1)%p(j)%lastseen
   score=score/(x(idx1)%p(j)%iseen+1)
   score=score/(x(idx1)%p(j)%nat**2) 
-!  write(*,*)'score',j,score,x(idx1)%p(j)%lastseen,x(idx1)%p(j)%iseen
   if (score.gt.highscore .or. j.eq.1) then
      highscore=score
      ihighscore=j
@@ -225,12 +216,6 @@ end do
   x(idx1)%p(j)%nat=nat
   x(idx1)%p(j)%lastseen=nstructall
  
-!  do i=1,order+1
-!    call cpvli(poly(i),x(idx1)%p(j)%polynomial(i))
-!  end do
-
-!  j=j+1
-!  if (j.gt.xlen(idx1)) j=1
   irepl(idx1)=j
 end if
 
@@ -238,12 +223,7 @@ end if
    if (mod(nstructall,writemark).eq.0)  then
     if (has_write_cache_file) then   
       if (verbose) write(*,*)'Saving cache',trim(write_cache_fname)
-!    call execute_command_line ("mv cache.bin cache.bin.bak")
-!     ires=rename('cache.bin','cache.bin.bak')
       call writetodisk(write_cache_fname)
-!    call execute_command_line ("rm cache.bin.bak")
-!     open(unit=23, iostat=ires, file='cache.bin.bak', status='old')
-!     if (ires .eq. 0) close(23, status='delete')
     end if 
    end if
   end if
@@ -277,21 +257,13 @@ implicit none
     end if
     do i=1,ilen
       write(23)x(idx1)%p(i)%order,x(idx1)%p(i)%iseen,x(idx1)%p(i)%nat,x(idx1)%p(i)%lastseen,&
-               (x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize)
+               (x(idx1)%p(i)%nlist(ibuf),ibuf=1,hashsize) !&
       write(24,*)x(idx1)%p(i)%nat,x(idx1)%p(i)%iseen,x(idx1)%p(i)%order
       write(23)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
 
-
-!      write(*,*)(x(idx1)%p(i)%packedpolynomial(ibuf),ibuf=1,x(idx1)%p(i)%mpacksize)
-
-!      call writetofile(23,x(idx1)%p(i)%polynomial,x(idx1)%p(i)%order+1)
-      do j=1,x(idx1)%p(i)%order+1
-!        if (x(idx1)%p(i)%polynomial(j)%leadpow.gt.leadpowmax) leadpowmax=x(idx1)%p(i)%polynomial(j)%leadpow
-      end do
     end do
   end do
   if (verbose) write (*,*)'cache saved',ncachebytes+20,'bytes'
-!  write(*,*)'Max large integer size: ',leadpowmax
   close(23)
   close(24)
 end subroutine writetodisk
@@ -367,12 +339,11 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
   if (firstrun) then
     allocate(x(nbuckets),xlen(nbuckets),irepl(nbuckets))
     firstrun=.false.
-!    ncachebytes = nbuckets*(8+2*kint)
     xlen=0
   end if
 
   
-  asmall=0 ! fills outside of neighbornumber with zeroes
+  asmall=0 ! zeroes parts unbonded parts
   do i=1,nat
    do j=1,nbnum(i)
      asmall(j,i)=a(j,i)
@@ -391,7 +362,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
 
 
   seen = .false.
-!  write(*,*)nat,xlen(nat)
   xtmp=x(idx1)
   curr=>xtmp
   structloop:   do i=1,xlen(idx1)
@@ -401,7 +371,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
         end if
       if (j.eq.hashsize) then 
         seen=.true.
-!        write(*,*)'match'
         match=>curr%p(i)
         exit structloop
       end if
@@ -412,11 +381,6 @@ function check_seen(nat,nbnum,a,order,poly) result(seen)
     x(idx1)%p(i)%iseen=x(idx1)%p(i)%iseen+1
     x(idx1)%p(i)%lastseen=nstructall
     allocate(poly(order+1))
-!     do i=1,order+1
-!       call unpackvliarray(res,a,n,mpow)
-!
-!      call cpvli(match%polynomial(i),poly(i))
-!    end do
     call unpackvliarray2(match%packedpolynomial,poly,order+1,match%mpacksize)
 
  end if
