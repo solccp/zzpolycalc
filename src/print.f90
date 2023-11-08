@@ -8,6 +8,7 @@ subroutine print_ZZ_polynomial(pah)
 ! displayed at stdout
 !
   use types_module
+  use options_module
   implicit none
   integer(kint) :: i,cpos
   type(vlonginteger) :: total
@@ -75,7 +76,7 @@ subroutine print_ZZ_polynomial(pah)
   cpos = 1
   call print_vli_in_string(cpos,finalZZpolynomial,total)
   write(*,'(1x,2a)')"total: ",trim(finalZZpolynomial)
-
+  if (verbose) write(*,'(a,1x,i0)')'max bigint',total%leadpow
   return
 
 end subroutine print_ZZ_polynomial

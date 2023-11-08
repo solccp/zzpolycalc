@@ -8,7 +8,7 @@ obj/findZZ.o : src/findZZ.f90 obj/hash_modules.o obj/types_module.o
 obj/polynomial.o : src/polynomial.f90 obj/types_module.o 
 obj/decompose.o : src/decompose.f90 obj/options.o obj/types_module.o 
 obj/operators.o : src/operators.f90 obj/types_module.o 
-obj/print.o : src/print.f90 obj/types_module.o 
+obj/print.o : src/print.f90 obj/options.o obj/types_module.o 
 obj/hexagon.o : src/hexagon.f90 obj/types_module.o 
 obj/schlegel.o : src/schlegel.f90 obj/types_module.o 
 obj/options.o : src/options.f90 obj/types_module.o 
