@@ -71,7 +71,7 @@ end if
   else
     call print_ZZ_polynomial(pah)
   endif
-  if (verbose) write(*,'(a,3(X,i0))')'Seen Unique Remembered',nstructseen,nstructall,nstruct
+  if (verbose) write(*,'(a,3(1X,i0))')'Seen Unique Remembered',nstructseen,nstructall,nstruct
   notused=0
   if (allocated(xlen)) then
     do i=1,nbuckets
@@ -80,7 +80,7 @@ end if
       end do
     end do
   end if
-  if (verbose) write(*,'(a,X,i0)')'Not used:',notused
+  if (verbose) write(*,'(a,1X,i0)')'Not used:',notused
   if (has_write_cache_file) then
     call writetodisk(write_cache_fname)
   end if

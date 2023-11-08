@@ -92,7 +92,7 @@ subroutine add_cachedstructure(nat,nbnum,a,order,poly,hashseen,iseen,lastseen,du
   if (.not. present(duringread)) then ! only print in main calculation not when reading cache.bin
     nstructall=nstructall+1
     if (mod(nstructall,100000_int64).eq.0)  then
-      if (verbose) write(*,'(A,I0,X,I0,A,I0)')'nstruct ',nstructall,nstruct,' filesize ',ncachebytes
+      if (verbose) write(*,'(A,I0,1X,I0,A,I0)')'nstruct ',nstructall,nstruct,' filesize ',ncachebytes
     end if 
   end if
 
@@ -235,7 +235,7 @@ use options_module
 implicit none
   type(ptrcachedstructure), target :: xtmp
   logical :: first
-  integer :: i,j,ilen,idx1,ibuf
+  integer :: i,ilen,idx1,ibuf
   character(len=*), intent(in) :: fname
 
   open(23,file=trim(fname),FORM='UNFORMATTED')
