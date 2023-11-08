@@ -12,7 +12,7 @@ obj/print.o : src/print.f90 obj/options.o obj/types_module.o
 obj/hexagon.o : src/hexagon.f90 obj/types_module.o 
 obj/schlegel.o : src/schlegel.f90 obj/types_module.o 
 obj/options.o : src/options.f90 obj/types_module.o 
-obj/getopt.o : src/getopt.f90 obj/options.o 
+obj/getopt.o : src/getopt.f90 obj/types_module.o obj/options.o 
 obj/sort.o : src/sort.f90 obj/types_module.o 
 obj/md5.o : src/md5.c 
 obj/xxhashwrapper.o : src/xxhashwrapper.c 

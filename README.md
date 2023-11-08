@@ -96,6 +96,7 @@ $ bin/ZZPolyCalc -h
 Usage: ZZPolyCalc [options] input
 Options:
     -a                Specifies that the input file contains an adjacency matrix instead of XYZ format
+    -c number         Changes cache status printing at verbose mode to every {number} million steps
     -m number         Sets the maximum {number} of structures in the cache database
     -p                Prints intermediate bond-level structures
     -Q                Prints the ZZ polynomial in XML format
@@ -115,6 +116,8 @@ linenumber atom1 atom2 atom3
 where atom1, atom2, and atom3 represent connected atom numbers. If only two atoms are connected, atom3 should be 0.
 
 This option is useful for systems where Cartesian geometry is difficult to obtain, such as fullerenes.
+
+With the -c option one can change the frequency of printing of the cache status. The units are in millions of fragments processed and can be non-integer. 
 
 The -m option specifies the number of structures in the cache database. Structures beyond this number will replace previously computed ones.
 

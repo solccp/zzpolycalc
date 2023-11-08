@@ -62,11 +62,13 @@ contains
 
 subroutine read_options(input_fname)
   use options_module
+  use types_module
   implicit none
   character :: okey
   integer :: argc
   character(len=*), intent(out) :: input_fname
-
+  real(kreal) :: tmp
+ 
     argc = command_argument_count()
 
     if (argc < 1) then
@@ -76,7 +78,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('ham:pQr:s:uvw:X')
+        okey = getopt('hac:m:pQr:s:uvw:X')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -84,6 +86,14 @@ subroutine read_options(input_fname)
         end if
         if(okey == 'a') then
             is_adjacencyfile = .true.
+        end if
+        if(okey == 'c') then
+            read(optarg, *) tmp
+            if (tmp .gt. 0.0d0) then
+              cacheprintmark = int(tmp*1.d6,int64)
+            else
+              write(*,*)'The number at -c option should be positive. Replaced by default'
+            end if
         end if
         if(okey == 'm') then
             read(optarg, *) maxrecords
@@ -142,6 +152,8 @@ subroutine print_usage()
     write(*, '(1x,a)') "Options:"
     write(*, '(1x,10a)') "    ", "-a", "                ",  &
                                 "Specifies that the input file contains an adjacency matrix instead of XYZ format"
+    write(*, '(1x,10a)') "    ", "-c number", "         ",  &
+                                 "Changes cache status printing at verbose mode to every {number} million steps"
     write(*, '(1x,10a)') "    ", "-m number", "         ",  "Sets the maximum {number} of structures in the cache database"
     write(*, '(1x,10a)') "    ", "-p", "                ",  "Prints intermediate bond-level structures"
     write(*, '(1x,10a)') "    ", "-Q", "                ",  "Print the ZZ polynomial in XML format"
@@ -150,7 +162,7 @@ subroutine print_usage()
     write(*, '(1x,10a)') "    ", "-u", "                ",  "Uses unmodified input XYZ geometry (sorted by default)"
     write(*, '(1x,10a)') "    ", "-v", "                ",  "Enables verbose printing"
     write(*, '(1x,10a)') "    ", "-w file", "           ",  "Writes cached structures to a {file}"
-    write(*, '(1x,10a)') "    ", "-X", "                ",  "Reads connection table from the bottom of the XYZ file"
+    write(*, '(1x,10a)') "    ", "-X", "                ",  "Reads connection table from the bottom of the XYZ file."
     write(*, '(1x,10a)') "    ", "-h", "                ",  "Displays this help message"
 end subroutine
 

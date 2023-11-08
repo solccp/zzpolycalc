@@ -5,6 +5,7 @@ module options_module
   integer :: nbuckets
   integer :: chunksize
   integer(int64) :: writemark 
+  integer(int64) :: cacheprintmark
   integer :: maxrecords 
   logical :: is_adjacencyfile
   logical :: has_read_cache_file
@@ -20,6 +21,7 @@ contains
   subroutine initialize_options()
     chunksize = 1
     nbuckets = 1000000
+    cacheprintmark = 1000000
     writemark =   200000000
     maxrecords =  20000000
     is_adjacencyfile = .false.
@@ -41,6 +43,7 @@ contains
     if (is_adjacencyfile) write(*,*)'Input file is adjacency matrix'
     if (unsorted_geometry) write(*,*)'Unmodified geometry used' 
     if (read_connection_table) write(*,*)'Connection table read from the bottom of the xyz file'
+    if (verbose) write(*,'(A,1X,I0,1X,A)')'Will print cache status every',cacheprintmark,'steps'
   end subroutine print_options   
     
     
