@@ -78,7 +78,7 @@ subroutine read_options(input_fname)
 
 
     do
-        okey = getopt('hac:m:pQr:s:uvw:X')
+        okey = getopt('hac:f:m:pQr:s:uvw:X')
         if(okey == '>') exit
         if(okey == '!') then
             write(*,*) 'unknown option: ', trim(optarg)
@@ -95,6 +95,23 @@ subroutine read_options(input_fname)
               write(*,*)'The number at -c option should be positive. Replaced by default'
             end if
         end if
+
+        if(okey == 'f') then
+            read(optarg, *) tmp 
+            if (tmp .gt. 1d6) then
+               write(*,*)'-f option should be specified in millions'
+               stop
+            else
+              if (tmp .ge. 1.0d0) then
+                writemark = int(tmp*1.d6,int64)
+              else
+                write(*,*)'The number at -f option is too small. Select at least 1'
+                stop
+              end if
+            end if
+        end if
+
+
         if(okey == 'm') then
             read(optarg, *) maxrecords
         end if
@@ -145,6 +162,10 @@ subroutine read_options(input_fname)
         end if
 
     end do
+    if (writemark.gt.0 .and. .not. has_write_cache_file) then
+      write(*,*)'-f option requires specifying the cache file in -w  option'
+      stop
+    end if
 end subroutine read_options
 
 subroutine print_usage()
@@ -154,6 +175,8 @@ subroutine print_usage()
                                 "Specifies that the input file contains an adjacency matrix instead of XYZ format"
     write(*, '(1x,10a)') "    ", "-c number", "         ",  &
                                  "Changes cache status printing at verbose mode to every {number} million steps"
+    write(*, '(1x,10a)') "    ", "-f number", "         ",&  
+                "Sets the frequency of cache writes at {number} of million of structures. Requires -w"
     write(*, '(1x,10a)') "    ", "-m number", "         ",  "Sets the maximum {number} of structures in the cache database"
     write(*, '(1x,10a)') "    ", "-p", "                ",  "Prints intermediate bond-level structures"
     write(*, '(1x,10a)') "    ", "-Q", "                ",  "Print the ZZ polynomial in XML format"

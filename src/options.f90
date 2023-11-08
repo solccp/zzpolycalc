@@ -22,7 +22,7 @@ contains
     chunksize = 1
     nbuckets = 1000000
     cacheprintmark = 1000000
-    writemark =   200000000
+    writemark =   -1
     maxrecords =  20000000
     is_adjacencyfile = .false.
     print_bondlevel = .false.
@@ -39,11 +39,12 @@ contains
     write(*,'(a,1X,i0)')'maxrecords',maxrecords
     if (has_read_cache_file) write(*,'(a,a)')'Read cache from:  ',trim(read_cache_fname)
     if (has_write_cache_file) write(*,'(a,a)')'Write cache to:  ',trim(write_cache_fname)
+    if (writemark .gt. 0) write(*,'(a,1X,i0,1X,a)')'Automatic writing of cache file every',writemark,'steps'
     write(*,'(a,1X,i0)')'vlongmax',vlongmax
     if (is_adjacencyfile) write(*,*)'Input file is adjacency matrix'
     if (unsorted_geometry) write(*,*)'Unmodified geometry used' 
     if (read_connection_table) write(*,*)'Connection table read from the bottom of the xyz file'
-    if (verbose) write(*,'(A,1X,I0,1X,A)')'Will print cache status every',cacheprintmark,'steps'
+    write(*,'(A,1X,I0,1X,A)')'Will print cache status every',cacheprintmark,'steps'
   end subroutine print_options   
     
     

@@ -97,6 +97,7 @@ Usage: ZZPolyCalc [options] input
 Options:
     -a                Specifies that the input file contains an adjacency matrix instead of XYZ format
     -c number         Changes cache status printing at verbose mode to every {number} million steps
+    -f number         Sets the frequency of cache writes at {number} of million of structures. Requires -w
     -m number         Sets the maximum {number} of structures in the cache database
     -p                Prints intermediate bond-level structures
     -Q                Prints the ZZ polynomial in XML format
@@ -118,6 +119,8 @@ where atom1, atom2, and atom3 represent connected atom numbers. If only two atom
 This option is useful for systems where Cartesian geometry is difficult to obtain, such as fullerenes.
 
 With the -c option one can change the frequency of printing of the cache status. The units are in millions of fragments processed and can be non-integer. 
+
+The -f option specifies frequency of the cache checkpointing to a file specified by the -w flag. Useful for very long jobs for crash recovery. 
 
 The -m option specifies the number of structures in the cache database. Structures beyond this number will replace previously computed ones.
 

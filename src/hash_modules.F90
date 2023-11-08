@@ -218,7 +218,7 @@ end do
 end if
 
   if (.not.present(hashseen) .and. .not. present(duringread)) then
-   if (mod(nstructall,writemark).eq.0)  then
+   if (writemark > 0 .and. mod(nstructall,writemark).eq.0)  then
     if (has_write_cache_file) then   
       if (verbose) write(*,*)'Saving cache',trim(write_cache_fname)
       call writetodisk(write_cache_fname)
@@ -238,7 +238,7 @@ implicit none
   integer :: i,ilen,idx1,ibuf
   character(len=*), intent(in) :: fname
 
-  open(23,file=trim(fname),FORM='UNFORMATTED')
+  open(23,file=trim(fname),FORM='UNFORMATTED',status='replace')
   write(23)vlongmax,nstructall
 
   do idx1=1,nbuckets
