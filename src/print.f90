@@ -26,7 +26,6 @@ subroutine print_ZZ_polynomial(pah)
       write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)
   else 
     if (cpos > 450) then
-      write(*,*)'pl45',cpos
       write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)      
       finalZZpolynomial=''
       cpos=1
@@ -65,7 +64,6 @@ subroutine print_ZZ_polynomial(pah)
     if (i == pah%order) then
       write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)
     else if (cpos > 450) then
-!      write(*,*)'pl45',cpos
       write(*,'(1x,a)')finalZZpolynomial(1:cpos-1)      
       finalZZpolynomial=''
       cpos=1
