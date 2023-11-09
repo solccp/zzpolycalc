@@ -25,7 +25,7 @@ cmake_minimum_required(VERSION 2.8.12..3.24.2)
  
 #macro_ensure_out_of_source_build("${PROJECT_NAME} requires an out of source build.")
 
-option(USE_SHA256 "enable SHA256" OFF)
+option(USE_SHA256 "Enable SHA256" OFF)
 
 
 
