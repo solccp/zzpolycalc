@@ -133,7 +133,7 @@ subroutine print_ZZ_polynomial_XML(pah)
     type(structure), intent(in) :: pah
     integer :: i,cpos
     type(vlonginteger) :: total
-    character(len=1000000) :: finalZZpolynomial
+    character(len=maxpolylength) :: finalZZpolynomial
 
 
 ! #########################
