@@ -1,0 +1,8 @@
+*******
+Authors
+*******
+
+The initial version of this code was created by Henryk A. Witek (National Chiao Tung University, Hsinchu, Taiwan) in 2010 
+and developed further by Chien-Pin Chou (from the same university). These versions are available as [ZZCalculator](https://github.com/solccp/zzcalculator). 
+
+Rafał Podeszwa (University of Silesia in Katowice, Poland) overhauled the code to enable for the fragments caching starting in 2020.
