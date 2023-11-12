@@ -1,7 +1,8 @@
-ZZPolyCalc: An Open-Source Code with Structure Caching for the Determination of Zhang-Zhang Polynomials of Carbon Nanostructures
+ZZPolyCalc: An Open-Source Code with Fragment Caching for the Determination of Zhang-Zhang Polynomials of Carbon Nanostructures
 
 ZZPolyCalc computes Zhang-Zhang polynomials for carbon nanostructures. This code is an improved version of the 
 [non-cached ZZCalculator](https://github.com/solccp/zzcalculator). It retains most of the ZZCalculator's options, significantly enhances speed due to caching, and adds support for five-membered rings.
+Thanks to its caching mechanism, ZZPolyCalc achieves polynomial scaling for quasi-1D systems, such as elongated graphene flakes or carbon nanotubes, thereby justifying the 'Poly' in its name
 
 ZZPolyCalc is released under the GNU General Public License ver. 3. Please consult the included [LICENSE](LICENSE) file for detailed licensing conditions.
 
